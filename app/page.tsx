@@ -3,7 +3,6 @@ import MessageRecords from "@/components/ChatRecord";
 import { MessageInput } from "@/components/ChatInput/message-input-box";
 import { ReplyMessageBox } from "@/components/ChatReply/message-reply-box";
 import character from "@/public/character.png";
-import { memoryService } from "@/utils/memoryService";
 import { addToast } from "@heroui/toast";
 import Image from "next/image";
 import { useState } from "react";
@@ -15,6 +14,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const { sendMessage } = useChat();
+  const { importMemory, exportMemory } = useChat();
 
   const handleSendMessage = async (message: string) => {
     setLastMessage(message);
@@ -54,7 +54,7 @@ export default function Home() {
       if (!file) {
         throw new Error("No file selected");
       }
-      await memoryService.importMemory(file);
+      await importMemory(file);
       console.log("File uploaded successfully:", file.name, file.size, "bytes");
     } catch {
     } finally {
@@ -67,7 +67,7 @@ export default function Home() {
     setIsDownloading(true);
 
     try {
-      const fileName = await memoryService.exportMemory();
+      const fileName = await exportMemory();
       console.log(`Memory exported: ${fileName}`);
     } catch (error) {
       console.error("Error during file download:", error);
