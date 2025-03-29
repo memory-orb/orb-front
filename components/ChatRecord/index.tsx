@@ -3,6 +3,7 @@
 import { useLitProtocol } from "@/contexts/litProtocolContext";
 import DecryptButton from "../DecryptButton";
 import EncryptButton from "../EncryptButton";
+import { addToast } from "@heroui/toast";
 
 interface LastSendMessageBoxProps {
   message: string;
@@ -26,7 +27,7 @@ const MessageRecords: React.FC<LastSendMessageBoxProps> = ({
   return (
     <div className={`flex flex-col w-full justify-end space-y-[20px] ${className}`}>
       <div className="flex ml-auto gap-2">
-        <EncryptButton />
+        <EncryptButton onUploadFinished={(id) => addToast({color: "success", title: "Upload success", description: `Arweave TX ID: ${id}`})} />
         <DecryptButton />
         <button
           className="w-[122px] h-[34px] rounded-[50px] bg-[rgba(255,255,255,0.7)]"

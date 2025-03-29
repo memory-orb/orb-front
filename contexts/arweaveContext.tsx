@@ -37,14 +37,14 @@ export function ArweaveProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("arweaveKey", JSON.stringify(generatedKey));
   }, [client]);
 
-  useEffect(() => {
-    const storedKey = localStorage.getItem("arweaveKey");
-    if (storedKey) {
-      setPrivateKey(JSON.parse(storedKey));
-    } else {
-      generateKey();
-    }
-  }, [generateKey]);
+  // useEffect(() => {
+  //   const storedKey = localStorage.getItem("arweaveKey");
+  //   if (storedKey) {
+  //     setPrivateKey(JSON.parse(storedKey));
+  //   } else {
+  //     generateKey();
+  //   }
+  // }, [generateKey]);
 
   useEffect(() => {
     if (privateKey !== "use_wallet") {
@@ -69,6 +69,7 @@ export function ArweaveProvider({ children }: { children: React.ReactNode }) {
   const uploadFile = useCallback(
     async (data: ArrayBuffer) => {
       console.log("[Arweave] Uploading file to Arweave...", data);
+      console.log("[Arweave] Using key:", privateKey);
       if (!privateKey) {
         console.error("Private key not available");
         throw new Error("Private key not available");
@@ -92,6 +93,7 @@ export function ArweaveProvider({ children }: { children: React.ReactNode }) {
 
   const fetchFile = useCallback(
     async (transactionId: string) => {
+      console.log("[Arweave] Fetching file from Arweave...", transactionId);
       const data = await client.transactions.getData(transactionId, {
         decode: true,
         string: false,

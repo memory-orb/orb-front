@@ -48,7 +48,7 @@ export const ChatProvider = ({
   }: Readonly<SendMessageParams>): Promise<void> => {
     try {
       setRecords((oldRecords) => [...oldRecords, { role: "user", content: message }]);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/chat`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chat`, {
         method: 'POST',
         mode: 'cors',
         headers: {
