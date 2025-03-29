@@ -23,6 +23,8 @@ export default function DecryptButton() {
   const [statusText, setStatusText] = useState<string>("");
   const [isDecrypting, setIsDecrypting] = useState<boolean>(false);
 
+  const decode = new TextDecoder("utf-8");
+
   const handleDownload = async () => {
     try {
       setIsDecrypting(true);
@@ -31,8 +33,8 @@ export default function DecryptButton() {
       if (!fileBuffer) {
         throw new Error("File not found");
       }
-      const decode = new TextDecoder("utf-8");
       const data = decode.decode(fileBuffer);
+      console.log("data", data);
       const { ciphertext, dataToEncryptHash, condition } = JSON.parse(data);
       if (!ciphertext || !dataToEncryptHash) {
         throw new Error("Invalid file format");

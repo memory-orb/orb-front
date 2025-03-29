@@ -13,17 +13,22 @@ import AccessControlConditionsEditor from "./access-condition-editor";
 import { AccessControlConditions } from "@lit-protocol/types";
 import { useArweave } from "@/contexts/arweaveContext";
 import { useLitProtocol } from "@/contexts/litProtocolContext";
+import { useEthers } from "@/contexts/ethersContext";
 
 interface UploadButtonProps {
   onUploadFinished?: (arweaveTransId: string) => void;
 }
 
-const UploadButton: React.FC<UploadButtonProps> = ({ onUploadFinished }) => {
+const EncryptButton: React.FC<UploadButtonProps> = ({ onUploadFinished }) => {
   const [conditions, setConditions] = useState<AccessControlConditions>([]);
   const [isUploading, setUploading] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<string>("");
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { setArweaveMapping } = useEthers();
   const { uploadFile } = useArweave();
   const { encryptFile } = useLitProtocol();
+
+  const encoder = new TextEncoder();
 
   const handleUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -45,7 +50,6 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUploadFinished }) => {
       );
 
       // Upload to arweave
-      const encoder = new TextEncoder();
       const uint8Array = encoder.encode(
         JSON.stringify({
           ciphertext,
@@ -54,12 +58,19 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUploadFinished }) => {
           originalFileName: file.name,
         })
       );
+      setStatusMessage("Uploading...");
       const arweaveTransId = await uploadFile(uint8Array.buffer as ArrayBuffer);
       if (arweaveTransId) {
+        setStatusMessage(`Uploaded arweave id: ${arweaveTransId}`);
+        setArweaveMapping(arweaveTransId);
         onUploadFinished?.(arweaveTransId);
+      } else {
+        throw new Error("Upload result is empty");
       }
     } catch (error) {
       console.error("Error during file upload:", error);
+      setStatusMessage("Upload failed");
+      throw error;
       // setStatusMessage(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setUploading(false);
@@ -93,9 +104,11 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUploadFinished }) => {
                 />
               </ModalBody>
               <ModalFooter>
+                <span>{statusMessage}</span>
                 <Button onPress={onClose}>Cancel</Button>
                 <Button
                   color="primary"
+                  isLoading={isUploading}
                   onPress={() => document.getElementById("memory-upload")?.click()}
                 >
                   Upload
@@ -109,4 +122,4 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUploadFinished }) => {
   );
 }
 
-export default UploadButton;
+export default EncryptButton;

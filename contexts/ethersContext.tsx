@@ -1,6 +1,7 @@
 "use client";
-import { ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import { createContext, useCallback, useContext, useEffect, useReducer, useRef, useState } from "react";
+import arweaveMappingAbi from "@/artifacts/contracts/ArweaveMapping.sol/ArweaveMapping.json";
 
 interface EthersState {
   provider: ethers.providers.Web3Provider | null;
@@ -16,11 +17,17 @@ const initialState: EthersState = {
 
 interface EthersContext extends EthersState {
   switchNetwork: (chainId: string) => Promise<void>;
+  getTotalRegisteredAddresses: () => Promise<number>;
+  getUploadedList: (offset: number, limit: number) => Promise<{ address: string; arweaveId: string }[]>;
+  setArweaveMapping: (arweaveId: string) => Promise<void>;
 }
 
 const ethersContext = createContext<EthersContext>({
   ...initialState,
   switchNetwork: async () => { },
+  getTotalRegisteredAddresses: async () => { return 0; },
+  getUploadedList: async (offset: number, limit: number) => { return []; },
+  setArweaveMapping: async (arweaveId: string) => { },
 });
 
 type EthersAction =
@@ -41,7 +48,16 @@ const ethersReducer = (state: EthersState, action: EthersAction): EthersState =>
 export const EthersProvider = ({ children }: { children: React.ReactNode }) => {
   const [provider, setProvider] = useState<ethers.providers.Web3Provider | null>(null);
   const [state, dispatch] = useReducer(ethersReducer, initialState);
+  const [contract, setContract] = useState<ethers.Contract | null>(null);
   const initialized = useRef(false);
+
+  useEffect(() => {
+    const contractAddress = process.env.NEXT_PUBLIC_ARWEAVE_MAPPING_CONTRACT;
+    if (!contractAddress) throw new Error("Contract address is not configured");
+    if (!provider) return;
+    const newContract = new ethers.Contract(contractAddress, arweaveMappingAbi.abi, provider);
+    setContract(newContract);
+  }, [provider]);
 
   useEffect(() => {
     if (initialized.current) return;
@@ -57,12 +73,37 @@ export const EthersProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    if (!provider) return;
     (async () => {
+      if (!provider) return;
       const accounts = await provider.send("eth_requestAccounts", []);
       console.log("Web3 Accounts:", accounts);
     })();
   }, [provider]);
+
+  const getTotalRegisteredAddresses = useCallback(async () => {
+    if (!contract) return 0;
+    const addresses = await contract.getTotalRegisteredAddresses() as BigNumber;
+    console.log("Registered Addresses:", addresses, typeof addresses);
+    return addresses.toNumber();
+  }, [contract]);
+
+  const getUploadedList = useCallback(async (offset: number, limit: number): Promise<{ address: string; arweaveId: string }[]> => {
+    if (!contract) return [];
+    const addresses = await contract.getRegisteredAddresses(offset, limit);
+    console.log("Uploaded Addresses:", addresses);
+    return addresses.map((data: string[2]) => ({
+      address: data[0],
+      arweaveId: data[1],
+    }));
+  }, [contract]);
+
+  const setArweaveMapping = useCallback(async (arweaveId: string) => {
+    if (!provider || !contract) throw new Error("Provider or contract not initialized");
+    const signer = provider.getSigner();
+    const contractWithSigner = contract.connect(signer);
+    const tx = await contractWithSigner.setArweaveTxId(arweaveId);
+    await tx.wait();
+  }, [provider, contract]);
 
   const switchNetwork = useCallback(async (chainId: string) => {
     if (!provider) throw new Error("Provider not initialized");
@@ -71,7 +112,14 @@ export const EthersProvider = ({ children }: { children: React.ReactNode }) => {
   }, [provider]);
 
   return (
-    <ethersContext.Provider value={{ ...state, provider, switchNetwork }}>
+    <ethersContext.Provider value={{
+      ...state,
+      provider,
+      switchNetwork,
+      getTotalRegisteredAddresses,
+      getUploadedList,
+      setArweaveMapping
+    }}>
       {children}
     </ethersContext.Provider>
   );

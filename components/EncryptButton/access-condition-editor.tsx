@@ -174,7 +174,7 @@ const AccessControlConditionsEditor: React.FC<AccessControlConditionsEditorProps
                   </FlexDiv>
 
                   <FlexDiv className='flex-col gap-2'>
-                    <Select isVirtualized onChange={(e) => {
+                    <Select label="Chain" isVirtualized onChange={(e) => {
                       updateItem(currentPath, { ...item, chain: e.target.value as AccsDefaultParams["chain"] });
                     }}>
                       {properties.chain.enum.map(chain => (
