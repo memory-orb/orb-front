@@ -1,106 +1,58 @@
 "use client";
-import MessageRecords from "@/components/ChatRecord";
-import { MessageInput } from "@/components/ChatInput/message-input-box";
-import { ReplyMessageBox } from "@/components/ChatReply/message-reply-box";
-import character from "@/public/character.png";
-import { addToast } from "@heroui/toast";
-import Image from "next/image";
-import { useState } from "react";
-import { useChat } from "@/contexts/chatContext";
+import { FloatTech, OrbButton, WalletButton } from "@/utils/styled";
+import Link from "next/link";
+import styled, { keyframes } from "styled-components";
 
-export default function Home() {
-  const [lastMessage, setLastMessage] = useState("");
-  const [lastReply, setLastReply] = useState({ content: "" });
-  const [isLoading, setIsLoading] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
-  const { sendMessage } = useChat();
-  const { importMemory, exportMemory } = useChat();
+const Container = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  text-align: center;
+  z-index: 1;
+  position: relative;
+`
 
-  const handleSendMessage = async (message: string) => {
-    setLastMessage(message);
-    setLastReply({ content: "(Thinking...)" });
-    await sendMessage({
-      message,
-      onChunk: (chunk) => {
-        setLastReply((oldReply) => {
-          if (oldReply.content === "(Thinking...)") {
-            return {
-              content: chunk,
-            };
-          }
-          return {
-            content: `${oldReply.content}${chunk}`,
-          };
-        });
-      },
-      onError: (error) => {
-        addToast({
-          title: "Error sending message",
-          description: error.message,
-          color: "danger",
-        });
-      }
-    });
-  };
+const Title = styled.h1`
+  font-family: var(--font-orbitron), sans-serif;
+  font-size: 5rem;
+  font-weight: 700;
+  letter-spacing: 5px;
+  color: var(--accent-color);
+  text-shadow: 0 0 25px var(--glow-color), 0 0 60px var(--accent-color);
+  animation: ${FloatTech} 5s ease-in-out infinite;
+  text-align: center;
+  margin-top: 6rem;
+`
 
-  const handleLoadMemory = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setIsLoading(true);
+const Subtitle = styled.p`
+  font-size: 1.2rem;
+  margin-bottom: 3rem;
+  opacity: 0.7;
+`
 
-    try {
-      console.log("Loading memory...");
-      const file = event.target.files?.[0];
-      if (!file) {
-        throw new Error("No file selected");
-      }
-      await importMemory(file);
-      console.log("File uploaded successfully:", file.name, file.size, "bytes");
-    } catch {
-    } finally {
-      setIsLoading(false);
-      if (event.target) event.target.value = "";
-    }
-  };
+const Enter = styled.div`
+  margin-top: 4rem;
+  opacity: 0.6;
+  animation: ${FloatTech} 3s ease-in-out infinite;
+`
 
-  const handleDownload = async () => {
-    setIsDownloading(true);
-
-    try {
-      const fileName = await exportMemory();
-      console.log(`Memory exported: ${fileName}`);
-    } catch (error) {
-      console.error("Error during file download:", error);
-    } finally {
-      setIsDownloading(false);
-    }
-  };
-
+export default function HomePage() {
   return (
-    <div className="bg-[url(../public/bg-home.png)] w-screen h-screen bg-cover bg-center bg-no-repeat flex">
-      <div className="flex-row flex left-0 right-0 w-full mx-auto gap-32 max-w-[1180px]">
-        {/* Left container */}
-        <Image
-          src={character}
-          alt="character"
-          className="w-[258px] h-[381px] mt-auto mb-20"
-          width={258}
-          height={381}
-        />
-        {/* Right container */}
-        <div className="flex-grow flex flex-col gap-10 h-[calc(100vh-80px)] p-5">
-          <ReplyMessageBox className="flex-grow" reply={lastReply} />
-          <MessageRecords
-            message={lastMessage}
-            handleLoadMemory={handleLoadMemory}
-            handleDownload={handleDownload}
-            isDownloading={isDownloading}
-            isLoading={isLoading}
-            className="flex"
-          />
-          <MessageInput onSend={(message) => handleSendMessage(message)} />
+    <div className="text-[#D3F4FF]">
+      <WalletButton>🔗 Connect Wallet</WalletButton>
+      <Container>
+        <Title>Memory-ORB</Title>
+        <Subtitle>连接神经云，唤醒你的多维记忆节点</Subtitle>
+        <div className="flex gap-4">
+          <Link href="/chat"><OrbButton>Build Memory</OrbButton></Link>
+          <Link href="/memories"><OrbButton>Explore Memories</OrbButton></Link>
         </div>
-      </div>
+        <Enter>
+          ↓ Enter the Second World
+        </Enter>
+      </Container>
     </div>
   );
 }

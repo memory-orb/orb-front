@@ -1,12 +1,27 @@
 "use client";
 
-import { useEthers } from "@/contexts/ethersContext";
+import { ArweaveMappingValue, useEthers } from "@/contexts/ethersContext";
 import { useEffect, useState } from "react";
 import styles from "./memories.module.css";
-import { FlexDiv } from "@/utils/styled";
+import MemoryCard from "@/components/MemoryCard";
+import styled from "styled-components";
+import { FloatTech } from "@/utils/styled";
+
+const Title = styled.h1`
+  font-family: var(--font-orbitron), sans-serif;
+  font-size: 5rem;
+  margin-top: 0.67em;
+  margin-bottom: 0.67em;
+  font-weight: 700;
+  letter-spacing: 5px;
+  color: var(--accent-color);
+  text-align: center;
+  text-shadow: 0 0 25px var(--glow-color), 0 0 60px var(--accent-color);
+  animation: ${FloatTech} 5s ease-in-out infinite;
+`
 
 export default function MemoriesPage() {
-  const [memoryList, setMemoryList] = useState<{ address: string; arweaveId: string; description: string; price: string }[]>([]);
+  const [memoryList, setMemoryList] = useState<ArweaveMappingValue[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const { getUploadedList, getTotalRegisteredAddresses } = useEthers();
 
@@ -29,43 +44,19 @@ export default function MemoriesPage() {
   }, [getTotalRegisteredAddresses, getUploadedList]);
 
   return (
-    <div className="px-8 py-4 max-w-[1200px] mx-auto">
-      <header className="">
-        <h1 className={styles.title}>Memories</h1>
-        <div className={styles.divider}></div>
-      </header>
+    <div className="px-8 py-16 m-auto max-w-[1000px]">
+      <Title>Explore Memories</Title>
 
       {loading ? (
         <div className={styles.loadingContainer}>
           <div className={styles.spinner}></div>
         </div>
       ) : memoryList.length > 0 ? (
-        <div className={styles.grid}>
+        <>
           {memoryList.map((memory, index) => (
-            <div className={styles.cardWrapper} key={index}>
-              <div className={styles.card}>
-                <FlexDiv className="flex-col p-6">
-                  <FlexDiv className="gap-2 flex-row">
-                    <span>Address:</span>
-                    <span>{memory.address}</span>
-                  </FlexDiv>
-                  <FlexDiv className="gap-2 flex-row">
-                    <span>Arweave&nbsp;ID:</span>
-                    <span>{memory.arweaveId}</span>
-                  </FlexDiv>
-                  <FlexDiv className="gap-2 flex-row">
-                    <span>Description:</span>
-                    <span>{memory.description}</span>
-                  </FlexDiv>
-                  <FlexDiv className="gap-2 flex-row">
-                    <span>Price:</span>
-                    <span>{memory.price}</span>
-                  </FlexDiv>
-                </FlexDiv>
-              </div>
-            </div>
+            <MemoryCard data={memory} key={`memory-${index}`} />
           ))}
-        </div>
+        </>
       ) : (
         <div className={styles.emptyState}>
           <p>No Memory Data</p>

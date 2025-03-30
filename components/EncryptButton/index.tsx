@@ -18,9 +18,10 @@ import { addToast, Divider, Input } from "@heroui/react";
 
 interface UploadButtonProps {
   onUploadFinished?: (arweaveTransId: string) => void;
+  children?: (onOpen: () => void) => Readonly<React.ReactNode>;
 }
 
-const EncryptButton: React.FC<UploadButtonProps> = ({ onUploadFinished }) => {
+const EncryptButton: React.FC<UploadButtonProps> = ({ onUploadFinished, children }) => {
   const [condition, setCondition] = useState<AccessControlConditions>([]);
   const [isUploading, setUploading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string>("");
@@ -83,15 +84,19 @@ const EncryptButton: React.FC<UploadButtonProps> = ({ onUploadFinished }) => {
 
   return (
     <>
-      <button
-        className="w-[122px] h-[34px] rounded-[50px] bg-[rgba(255,255,255,0.7)]"
-        onClick={onOpen}
-        disabled={isUploading}
-      >
-        <span className="font-normal text-[#666666] text-[16px]">
-          {isUploading ? "Uploading" : "Upload"}
-        </span>
-      </button>
+      {
+        children?.(onOpen) ?? (
+          <button
+            className="w-[122px] h-[34px] rounded-[50px] bg-[rgba(255,255,255,0.7)]"
+            onClick={onOpen}
+            disabled={isUploading}
+          >
+            <span className="font-normal text-[#666666] text-[16px]">
+              {isUploading ? "Uploading" : "Upload"}
+            </span>
+          </button>
+        )
+      }
       <Modal isOpen={isOpen} onClose={onClose} isDismissable={false} scrollBehavior="inside" size="4xl">
         <ModalContent>
           {(onClose) => (

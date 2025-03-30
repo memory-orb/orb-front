@@ -12,9 +12,9 @@ import {
   useDisclosure,
 } from "@heroui/modal";
 import { addToast } from "@heroui/toast";
-import { useState } from "react";
+import React, { useState } from "react";
 
-export default function DecryptButton() {
+export default function DecryptButton({ children }: { children?: (onOpen: () => void) => Readonly<React.ReactNode> }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { decryptFile } = useLitProtocol();
   const { fetchFile } = useArweave();
@@ -63,12 +63,14 @@ export default function DecryptButton() {
 
   return (
     <>
-      <button
-        className="w-[122px] h-[34px] rounded-[50px] bg-[rgba(255,255,255,0.7)]"
-        onClick={onOpen}
-      >
-        <span className="font-normal text-[#666666] text-[16px]">Download</span>
-      </button>
+      {children?.(onOpen) || (
+        <button
+          className="w-[122px] h-[34px] rounded-[50px] bg-[rgba(255,255,255,0.7)]"
+          onClick={onOpen}
+        >
+          <span className="font-normal text-[#666666] text-[16px]">Download</span>
+        </button>
+      )}
       <Modal isOpen={isOpen} onClose={onClose} isDismissable={false}>
         <ModalContent>
           {(onClose) => (

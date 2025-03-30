@@ -1,10 +1,12 @@
 "use client";
+import SideBar from "@/components/SideBar";
 import { ArweaveProvider } from "@/contexts/arweaveContext";
 import { ChatProvider } from "@/contexts/chatContext";
 import { EthersProvider } from "@/contexts/ethersContext";
 import { LitProtocolProvider } from "@/contexts/litProtocolContext";
+import { ToastProvider } from "@heroui/react";
 import { HeroUIProvider } from "@heroui/system";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ReactNode } from "react";
 
 export default function Providers({
@@ -13,15 +15,22 @@ export default function Providers({
   children: ReactNode;
 }>) {
   const router = useRouter();
+  const pathname = usePathname();
   return (
-    <HeroUIProvider navigate={router.push}>
-      <EthersProvider>
-        <LitProtocolProvider>
-          <ArweaveProvider>
-            <ChatProvider>{children}</ChatProvider>
-          </ArweaveProvider>
-        </LitProtocolProvider>
-      </EthersProvider>
-    </HeroUIProvider>
+    <>
+      {
+        pathname !== "/" && <SideBar />
+      }
+      <HeroUIProvider navigate={router.push}>
+        <ToastProvider />
+        <EthersProvider>
+          <LitProtocolProvider>
+            <ArweaveProvider>
+              <ChatProvider>{children}</ChatProvider>
+            </ArweaveProvider>
+          </LitProtocolProvider>
+        </EthersProvider>
+      </HeroUIProvider>
+    </>
   );
 }

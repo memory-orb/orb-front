@@ -12,12 +12,14 @@ interface SendMessageParams {
 const FingerPrintContext = createContext<{
   fingerprint: string;
   records: Readonly<ChatRecord>[];
+  isChating: boolean;
   sendMessage: (params: Readonly<SendMessageParams>) => Promise<void>;
   exportMemory: () => Promise<string>;
   importMemory: (file: File) => Promise<void>;
 }>({
   fingerprint: "",
   records: [],
+  isChating: false,
   sendMessage: async () => { throw new Error("Not implemented"); },
   exportMemory: async () => { throw new Error("Not implemented"); },
   importMemory: async () => { throw new Error("Not implemented"); },
@@ -33,6 +35,7 @@ export const ChatProvider = ({
     role: "ai" | "user";
     content: string;
   }>[]>([]);
+  const [isChating, setIsChating] = useState(false);
 
   useEffect(() => {
     const loadFp = async () => {
@@ -51,6 +54,11 @@ export const ChatProvider = ({
     onError,
   }: Readonly<SendMessageParams>): Promise<void> => {
     try {
+      if (isChating) {
+        console.warn("Already in a chat session, ignoring new message.");
+        return;
+      }
+      setIsChating(true);
       setRecords((oldRecords) => [...oldRecords, { role: "user", content: message }]);
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chat`, {
         method: 'POST',
@@ -99,6 +107,7 @@ export const ChatProvider = ({
               }
 
               if (data.done) {
+                setRecords((oldRecords) => [...oldRecords, { role: "ai", content: resp }]);
                 onDone?.();
                 return;
               }
@@ -112,14 +121,13 @@ export const ChatProvider = ({
           }
         }
       }
-
-      setRecords((oldRecords) => [...oldRecords, { role: "ai", content: resp }]);
-      onDone?.();
     } catch (error) {
       console.error("Error in streaming chat:", error);
       onError?.(error instanceof Error ? error : new Error(String(error)));
+    } finally {
+      setIsChating(false);
     }
-  }, [fingerprint]);
+  }, [fingerprint, isChating]);
 
   const exportMemory = useCallback(async (): Promise<string> => {
     try {
@@ -205,7 +213,7 @@ export const ChatProvider = ({
   }, [fingerprint]);
 
   return (
-    <FingerPrintContext.Provider value={{ fingerprint, records, sendMessage, exportMemory, importMemory }}>
+    <FingerPrintContext.Provider value={{ fingerprint, records, isChating, sendMessage, exportMemory, importMemory }}>
       {children}
     </FingerPrintContext.Provider>
   )
