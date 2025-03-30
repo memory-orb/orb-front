@@ -1,6 +1,6 @@
 "use client";
 import { useChat } from "@/contexts/chatContext";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import styled, { keyframes } from "styled-components"
 import { MessageInput } from "../ChatInput";
 
@@ -52,6 +52,7 @@ const Cursor = styled.span`
 export default function ChatBox() {
   const [reply, setReply] = useState<{ content: string }>({ content: "" });
   const { records, sendMessage, isChating } = useChat();
+  const messageEndRef = useRef<HTMLDivElement>(null);
 
   const handleChat = useCallback(async (message: string) => {
     setReply({ content: "" });
@@ -75,6 +76,10 @@ export default function ChatBox() {
     })
   }, [sendMessage]);
 
+  useEffect(() => {
+    messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [reply]);
+
   return (
     <DialogBox>
       <ChatArea>
@@ -88,6 +93,7 @@ export default function ChatBox() {
             <strong>AI:</strong> {reply.content}<Cursor />
           </Message>
         )}
+        <div ref={messageEndRef}></div>
       </ChatArea>
       <MessageInput onSend={handleChat} />
     </DialogBox>
