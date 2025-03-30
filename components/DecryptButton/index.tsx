@@ -14,7 +14,7 @@ import {
 import { addToast } from "@heroui/toast";
 import React, { useState } from "react";
 
-export default function DecryptButton({ children }: { children?: (onOpen: () => void) => Readonly<React.ReactNode> }) {
+export default function DecryptButton({ children }: { children?: (openModal: () => void) => Readonly<React.ReactNode> }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { decryptFile } = useLitProtocol();
   const { fetchFile } = useArweave();

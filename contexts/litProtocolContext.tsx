@@ -26,7 +26,7 @@ interface DecryptFileParams {
   ciphertext: string;
   dataToEncryptHash: string;
   condition: AccessControlConditions;
-  onProcess: (status: string) => void;
+  onProcess?: (status: string) => void;
 }
 
 interface LitProtocolContext extends LitProtocolProviderState {
@@ -107,7 +107,7 @@ export function LitProtocolProvider({ children }: { children: React.ReactNode })
   }, []);
 
   const encryptFile = useCallback<LitProtocolContext["encryptFile"]>(async (params: EncryptFileParams): Promise<EncryptResponse> => {
-    const { file, condition} = params;
+    const { file, condition } = params;
     if (state.status !== "connected") {
       throw new Error("LitNodeClient is not connected");
     }
@@ -126,7 +126,7 @@ export function LitProtocolProvider({ children }: { children: React.ReactNode })
     }
   }, [litNodeClient, state, usedBlockchain]);
 
-  const getSessionSignatures = useCallback(async (condition: AccessControlConditions, onProcess: (_: string) => void) => {
+  const getSessionSignatures = useCallback(async (condition: AccessControlConditions, onProcess?: (_: string) => void) => {
     if (!provider) return;
     // Connect to the wallet
     const { chainId } = await provider.getNetwork();
@@ -164,7 +164,7 @@ export function LitProtocolProvider({ children }: { children: React.ReactNode })
     console.log("Connected account:", walletAddress);
 
     // Get the latest blockhash
-    onProcess("Getting latest blockhash...");
+    onProcess?.("Getting latest blockhash...");
     const latestBlockhash = await litNodeClient.getLatestBlockhash();
     console.log("Latest blockhash:", latestBlockhash);
 
@@ -172,11 +172,11 @@ export function LitProtocolProvider({ children }: { children: React.ReactNode })
       signer: provider.getSigner(),
       network: LIT_NETWORK.DatilDev,
     });
-    onProcess("Connecting to Lit contract client...");
+    onProcess?.("Connecting to Lit contract client...");
     await contractClient.connect();
     console.log("Contract client:", contractClient);
 
-    onProcess("Minting capacity credits NFT...");
+    onProcess?.("Minting capacity credits NFT...");
     const { capacityTokenIdStr } = await contractClient.mintCapacityCreditsNFT({
       requestsPerKilosecond: 80,
       // requestsPerDay: 14400,
@@ -185,7 +185,7 @@ export function LitProtocolProvider({ children }: { children: React.ReactNode })
     });
     console.log("Capacity token ID:", capacityTokenIdStr);
 
-    onProcess("Creating capacity delegation auth sig...");
+    onProcess?.("Creating capacity delegation auth sig...");
     const { capacityDelegationAuthSig } = await litNodeClient.createCapacityDelegationAuthSig({
       dAppOwnerWallet: signer,
       uses: '1',
@@ -194,7 +194,7 @@ export function LitProtocolProvider({ children }: { children: React.ReactNode })
     });
     console.log("Capacity delegation auth sig:", capacityDelegationAuthSig);
 
-    onProcess("Getting session signatures...");
+    onProcess?.("Getting session signatures...");
     // Get the session signatures
     const sessionSigs = await litNodeClient.getSessionSigs({
       chain: usedBlockchain,
@@ -240,12 +240,7 @@ export function LitProtocolProvider({ children }: { children: React.ReactNode })
     return sessionSigs;
   }, [litNodeClient, provider, usedBlockchain]);
 
-  const decryptFile = useCallback<LitProtocolContext["decryptFile"]>(async (data: {
-    ciphertext: string,
-    dataToEncryptHash: string,
-    condition: AccessControlConditions,
-    onProcess: (status: string) => void
-  }): Promise<Blob> => {
+  const decryptFile = useCallback<LitProtocolContext["decryptFile"]>(async (data: DecryptFileParams): Promise<Blob> => {
     try {
       const { ciphertext, dataToEncryptHash, condition, onProcess } = data;
       if (!ciphertext || !dataToEncryptHash) {

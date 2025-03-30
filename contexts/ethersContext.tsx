@@ -54,6 +54,7 @@ const ethersReducer = (state: EthersState, action: EthersAction): EthersState =>
 
 export const EthersProvider = ({ children }: { children: React.ReactNode }) => {
   const [provider, setProvider] = useState<ethers.providers.Web3Provider | null>(null);
+  const [bscProvider, setBscProvider] = useState<ethers.providers.JsonRpcProvider | null>(null);
   const [state, dispatch] = useReducer(ethersReducer, initialState);
   const [contract, setContract] = useState<ethers.Contract | null>(null);
   const initialized = useRef(false);
@@ -61,10 +62,10 @@ export const EthersProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const contractAddress = process.env.NEXT_PUBLIC_ARWEAVE_MAPPING_CONTRACT;
     if (!contractAddress) throw new Error("Contract address is not configured");
-    if (!provider) return;
-    const newContract = new ethers.Contract(contractAddress, arweaveMappingAbi.abi, provider);
+    if (!bscProvider) return;
+    const newContract = new ethers.Contract(contractAddress, arweaveMappingAbi.abi, bscProvider);
     setContract(newContract);
-  }, [provider]);
+  }, [bscProvider]);
 
   useEffect(() => {
     if (initialized.current) return;
@@ -77,6 +78,9 @@ export const EthersProvider = ({ children }: { children: React.ReactNode }) => {
       dispatch({ action: "ADDRESS_CHANGES", address: accounts[0] });
     });
     setProvider(provider);
+
+    const bscProvider = new ethers.providers.JsonRpcProvider("https://broken-evocative-surf.bsc-testnet.quiknode.pro/11f750973f8f44ad331023073451c2eaee951114/");
+    setBscProvider(bscProvider);
   }, []);
 
   useEffect(() => {
