@@ -70,7 +70,7 @@ export const EthersProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (initialized.current) return;
     initialized.current = true;
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const provider = new ethers.providers.Web3Provider(window.ethereum, 'any');
     window.ethereum.on("accountsChanged", (accounts: string[]) => {
       dispatch({ action: "ADDRESS_CHANGES", address: accounts[0] });
     });
@@ -110,23 +110,23 @@ export const EthersProvider = ({ children }: { children: React.ReactNode }) => {
     }));
   }, [contract]);
 
+  const switchNetwork = useCallback(async (chainId: string) => {
+    if (!provider) { return; }
+    await provider.send("wallet_switchEthereumChain", [{ chainId }]);
+  }, [provider]);
+
   const setArweaveMapping = useCallback<EthersContext["setArweaveMapping"]>(
     async (params: Omit<ArweaveMappingValue, 'address'>) => {
       const { arweaveId, price, description } = params;
       if (!provider || !contract) throw new Error("Provider or contract not initialized");
+      switchNetwork("0x61");
       const signer = provider.getSigner();
       const contractWithSigner = contract.connect(signer);
       const tx = await contractWithSigner.setArweaveTxId(arweaveId, description, price);
       await tx.wait();
     },
-    [provider, contract]
+    [provider, contract, switchNetwork]
   );
-
-  const switchNetwork = useCallback(async (chainId: string) => {
-    if (!provider) throw new Error("Provider not initialized");
-    await provider.send("wallet_switchEthereumChain", [{ chainId }]);
-    dispatch({ action: "CHANGE_NETWORK", networkId: chainId });
-  }, [provider]);
 
   return (
     <ethersContext.Provider value={{

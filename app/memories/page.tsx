@@ -1,5 +1,4 @@
 "use client";
-
 import { ArweaveMappingValue, useEthers } from "@/contexts/ethersContext";
 import { useEffect, useState } from "react";
 import styles from "./memories.module.css";
@@ -29,10 +28,7 @@ export default function MemoriesPage() {
     const fetchUploadedList = async () => {
       try {
         setLoading(true);
-        const totalRegisteredAddresses = await getTotalRegisteredAddresses();
-        console.log("Total Registered Addresses:", totalRegisteredAddresses.toString());
         const uploadedList = await getUploadedList(0, 1);
-        console.log("Uploaded List:", uploadedList);
         setMemoryList(uploadedList);
       } catch (error) {
         console.error("获取记忆列表失败:", error);
