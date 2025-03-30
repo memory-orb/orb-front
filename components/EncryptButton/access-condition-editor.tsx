@@ -26,10 +26,10 @@ const DEFAULT_CONDITION: AccsDefaultParams = {
   contractAddress: '',
   standardContractType: '',
   chain: 'ethereum',
-  method: '',
+  method: 'eth_getBalance',
   parameters: [":userAddress"],
   returnValueTest: {
-    comparator: '=',
+    comparator: '>',
     value: '0'
   }
 };
@@ -174,7 +174,7 @@ const AccessControlConditionsEditor: React.FC<AccessControlConditionsEditorProps
                   </FlexDiv>
 
                   <FlexDiv className='flex-col gap-2'>
-                    <Select label="Chain" isVirtualized onChange={(e) => {
+                    <Select label="Chain" defaultSelectedKeys={[item.chain]} isVirtualized onChange={(e) => {
                       updateItem(currentPath, { ...item, chain: e.target.value as AccsDefaultParams["chain"] });
                     }}>
                       {properties.chain.enum.map(chain => (

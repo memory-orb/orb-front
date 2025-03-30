@@ -75,7 +75,7 @@ export default function DecryptButton() {
             <>
               <ModalHeader>Download & Decrypt</ModalHeader>
               <ModalBody>
-                <Input value={arweaveId} onValueChange={setArweaveId}></Input>
+                <Input label="Arweave ID" value={arweaveId} onValueChange={setArweaveId}></Input>
                 <span>{statusText}</span>
               </ModalBody>
               <ModalFooter>

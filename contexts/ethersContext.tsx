@@ -15,19 +15,30 @@ const initialState: EthersState = {
   walletAddress: null,
 };
 
+interface ArweaveMappingValue {
+  arweaveId: string;
+  price: string;
+  description: string;
+}
+
 interface EthersContext extends EthersState {
   switchNetwork: (chainId: string) => Promise<void>;
   getTotalRegisteredAddresses: () => Promise<number>;
-  getUploadedList: (offset: number, limit: number) => Promise<{ address: string; arweaveId: string }[]>;
-  setArweaveMapping: (arweaveId: string) => Promise<void>;
+  getUploadedList: (offset: number, limit: number) => Promise<{
+    address: string;
+    arweaveId: string;
+    description: string;
+    price: string;
+  }[]>;
+  setArweaveMapping: (params: ArweaveMappingValue) => Promise<void>;
 }
 
 const ethersContext = createContext<EthersContext>({
   ...initialState,
   switchNetwork: async () => { },
   getTotalRegisteredAddresses: async () => { return 0; },
-  getUploadedList: async (offset: number, limit: number) => { return []; },
-  setArweaveMapping: async (arweaveId: string) => { },
+  getUploadedList: async () => { return []; },
+  setArweaveMapping: async () => { },
 });
 
 type EthersAction =
@@ -87,21 +98,29 @@ export const EthersProvider = ({ children }: { children: React.ReactNode }) => {
     return addresses.toNumber();
   }, [contract]);
 
-  const getUploadedList = useCallback(async (offset: number, limit: number): Promise<{ address: string; arweaveId: string }[]> => {
+  const getUploadedList = useCallback(async (offset: number, limit: number): Promise<{
+    address: string;
+    arweaveId: string;
+    description: string;
+    price: string;
+  }[]> => {
     if (!contract) return [];
     const addresses = await contract.getRegisteredAddresses(offset, limit);
     console.log("Uploaded Addresses:", addresses);
-    return addresses.map((data: string[2]) => ({
+    return addresses.map((data: string[]) => ({
       address: data[0],
       arweaveId: data[1],
+      price: data[2],
+      description: data[3],
     }));
   }, [contract]);
 
-  const setArweaveMapping = useCallback(async (arweaveId: string) => {
+  const setArweaveMapping = useCallback<EthersContext["setArweaveMapping"]>(async (params: ArweaveMappingValue) => {
+    const { arweaveId, price, description } = params;
     if (!provider || !contract) throw new Error("Provider or contract not initialized");
     const signer = provider.getSigner();
     const contractWithSigner = contract.connect(signer);
-    const tx = await contractWithSigner.setArweaveTxId(arweaveId);
+    const tx = await contractWithSigner.setArweaveTxId(arweaveId, description, price);
     await tx.wait();
   }, [provider, contract]);
 

@@ -6,7 +6,7 @@ import styles from "./memories.module.css";
 import { FlexDiv } from "@/utils/styled";
 
 export default function MemoriesPage() {
-  const [memoryList, setMemoryList] = useState<{ address: string; arweaveId: string }[]>([]);
+  const [memoryList, setMemoryList] = useState<{ address: string; arweaveId: string; description: string; price: string }[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const { getUploadedList, getTotalRegisteredAddresses } = useEthers();
 
@@ -52,6 +52,14 @@ export default function MemoriesPage() {
                   <FlexDiv className="gap-2 flex-row">
                     <span>Arweave&nbsp;ID:</span>
                     <span>{memory.arweaveId}</span>
+                  </FlexDiv>
+                  <FlexDiv className="gap-2 flex-row">
+                    <span>Description:</span>
+                    <span>{memory.description}</span>
+                  </FlexDiv>
+                  <FlexDiv className="gap-2 flex-row">
+                    <span>Price:</span>
+                    <span>{memory.price}</span>
                   </FlexDiv>
                 </FlexDiv>
               </div>

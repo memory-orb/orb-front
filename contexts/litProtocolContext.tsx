@@ -15,18 +15,25 @@ interface LitProtocolProviderState {
 
 const initialState: LitProtocolProviderState = {
   status: "connecting",
+};
+
+interface EncryptFileParams {
+  file: Blob;
+  condition: AccessControlConditions;
+}
+
+interface DecryptFileParams {
+  ciphertext: string;
+  dataToEncryptHash: string;
+  condition: AccessControlConditions;
+  onProcess: (status: string) => void;
 }
 
 interface LitProtocolContext extends LitProtocolProviderState {
   litNodeClient?: LitNodeClient;
   switchLitNetwork: (network: LIT_NETWORKS_KEYS) => void;
-  encryptFile: (file: Blob, condition: AccessControlConditions) => Promise<EncryptResponse>;
-  decryptFile: (data: {
-    ciphertext: string,
-    dataToEncryptHash: string,
-    condition: AccessControlConditions,
-    onProcess: (status: string) => void,
-  }) => Promise<Blob>;
+  encryptFile: (params: EncryptFileParams) => Promise<EncryptResponse>;
+  decryptFile: (params: DecryptFileParams) => Promise<Blob>;
 }
 
 const LitProtocolContext = createContext<LitProtocolContext>({
@@ -99,7 +106,8 @@ export function LitProtocolProvider({ children }: { children: React.ReactNode })
     })();
   }, []);
 
-  const encryptFile = useCallback(async (file: Blob, condition: AccessControlConditions): Promise<EncryptResponse> => {
+  const encryptFile = useCallback<LitProtocolContext["encryptFile"]>(async (params: EncryptFileParams): Promise<EncryptResponse> => {
+    const { file, condition} = params;
     if (state.status !== "connected") {
       throw new Error("LitNodeClient is not connected");
     }
@@ -232,7 +240,7 @@ export function LitProtocolProvider({ children }: { children: React.ReactNode })
     return sessionSigs;
   }, [litNodeClient, provider, usedBlockchain]);
 
-  const decryptFile = useCallback(async (data: {
+  const decryptFile = useCallback<LitProtocolContext["decryptFile"]>(async (data: {
     ciphertext: string,
     dataToEncryptHash: string,
     condition: AccessControlConditions,
