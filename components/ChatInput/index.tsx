@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { FlexDiv } from "@/utils/styled";
 import styled from "styled-components";
+import { useChat } from "@/contexts/chatContext";
 
 export interface MessageInputProps {
   onSend?: (message: string) => Promise<void>;
@@ -35,6 +36,7 @@ const ChatButton = styled.button`
 
 export function MessageInput({ onSend }: MessageInputProps) {
   const [message, setMessage] = useState("");
+  const { isChating } = useChat();
 
   const handleSendMessage = async (message: string) => {
     if (message.trim() === "") return;
@@ -45,12 +47,16 @@ export function MessageInput({ onSend }: MessageInputProps) {
 
   return (
     <FlexDiv className="gap-2">
-      <ChatMessageInput placeholder="Input Message..." type="text" onKeyDown={async (e) => {
-        if (e.keyCode === 13) {
-          handleSendMessage(message);
-          setMessage("");
-        }
-      }} value={message} onChange={(e) => setMessage(e.target.value)} />
+      <ChatMessageInput
+        disabled={isChating}
+        placeholder={isChating ? "AI is talking" : "Input Message..."}
+        type="text"
+        onKeyDown={async (e) => {
+          if (e.keyCode === 13) {
+            handleSendMessage(message);
+            setMessage("");
+          }
+        }} value={message} onChange={(e) => setMessage(e.target.value)} />
       <ChatButton onClick={() => handleSendMessage(message)}>📤</ChatButton>
     </FlexDiv>
   )

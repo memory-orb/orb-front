@@ -3,27 +3,21 @@ import { ArweaveMappingValue } from "@/contexts/ethersContext";
 import styles from "./memorie-card.module.css";
 import { OrbButton } from "@/utils/styled";
 import { useState } from "react";
-import { useArweave } from "@/contexts/arweaveContext";
 import { useLitProtocol } from "@/contexts/litProtocolContext";
 import { addToast } from "@heroui/react";
 
 export default function MemoryCard({ data }: { data: ArweaveMappingValue }) {
   const [isDecrypting, setIsDecrypting] = useState(false);
   const [status, setStatus] = useState("");
-  const { fetchFile } = useArweave();
   const { decryptFile } = useLitProtocol();
-  const decode = new TextDecoder("utf-8");
 
   const handleDownload = async () => {
     try {
       setIsDecrypting(true);
       setStatus("Fetching");
-      const fileBuffer = await fetchFile(data.arweaveId);
-      if (!fileBuffer) {
-        throw new Error("File not found");
-      }
-      const fileData = decode.decode(fileBuffer);
-      const { ciphertext, dataToEncryptHash, condition, originalFileName } = JSON.parse(fileData);
+      const jsonData = await fetch(`https://arweave.net/${data.arweaveId}`);
+      const jsonText = await jsonData.text();
+      const { ciphertext, dataToEncryptHash, condition, originalFileName } = JSON.parse(jsonText);
       if (!ciphertext || !dataToEncryptHash) {
         throw new Error("Invalid file format");
       }

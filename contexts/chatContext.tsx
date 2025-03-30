@@ -108,6 +108,8 @@ export const ChatProvider = ({
 
               if (data.done) {
                 setRecords((oldRecords) => [...oldRecords, { role: "ai", content: resp }]);
+                setIsChating(false);
+                console.log("AI response completed");
                 onDone?.();
                 return;
               }
