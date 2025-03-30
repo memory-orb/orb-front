@@ -9,7 +9,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@auth0/nextjs-auth0": "^3.6.0",
     "@fingerprintjs/fingerprintjs": "^4.6.1",
     "@heroui/react": "^2.7.5",
     "@lit-protocol/encryption": "^7.0.8",

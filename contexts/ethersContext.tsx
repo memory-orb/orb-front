@@ -70,7 +70,7 @@ export const EthersProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (initialized.current) return;
     initialized.current = true;
-    const provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
     window.ethereum.on("accountsChanged", (accounts: string[]) => {
       dispatch({ action: "ADDRESS_CHANGES", address: accounts[0] });
     });
