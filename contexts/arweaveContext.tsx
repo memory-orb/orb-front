@@ -24,7 +24,11 @@ const ArweaveContext = createContext<{
 });
 
 export function ArweaveProvider({ children }: { children: React.ReactNode }) {
-  const [client] = useState(() => Arweave.init({}));
+  const [client] = useState(() => Arweave.init({
+    host: "arweave.net",
+    port: 443,
+    protocol: "https",
+  }));
 
   const [privateKey, setPrivateKey] = useState<JWKInterface | "use_wallet">("use_wallet");
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
