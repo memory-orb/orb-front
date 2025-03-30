@@ -24,7 +24,7 @@ export default function MemoryDownloader() {
       onClick={handleDownload}
       disabled={isDownloading}
     >
-      {isDownloading ? "Downloading" : "Download"}
+      {isDownloading ? "保存中" : "保存记忆"}
     </OrbButtonSmall>
   );
 }

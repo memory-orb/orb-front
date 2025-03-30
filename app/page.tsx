@@ -50,7 +50,7 @@ export default function HomePage() {
           <Link href="/memories"><OrbButton>Explore Memories</OrbButton></Link>
         </div>
         <Enter>
-          ↓ Enter the Second World
+          Enter the Second World
         </Enter>
       </Container>
     </div>

@@ -37,6 +37,7 @@ export function MessageInput({ onSend }: MessageInputProps) {
   const [message, setMessage] = useState("");
 
   const handleSendMessage = async (message: string) => {
+    if (message.trim() === "") return;
     if (onSend) {
       await onSend(message);
     }
@@ -51,7 +52,6 @@ export function MessageInput({ onSend }: MessageInputProps) {
         }
       }} value={message} onChange={(e) => setMessage(e.target.value)} />
       <ChatButton onClick={() => handleSendMessage(message)}>📤</ChatButton>
-      <ChatButton>✅</ChatButton>
     </FlexDiv>
   )
 }

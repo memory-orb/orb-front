@@ -41,7 +41,7 @@ export default function MemoryUploader({ children }: { children?: (isLoading: bo
         accept=".snapshot"
         onChange={handleLoadMemory}
       />
-      {isLoading ? "Uploading" : "Upload"}
+      {isLoading ? "读取中" : "读取记忆"}
     </OrbButtonSmall>
   )
 }
