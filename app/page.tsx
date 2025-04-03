@@ -1,6 +1,5 @@
 "use client";
-import { useEthers } from "@/contexts/ethersContext";
-import { FloatTech, OrbButton, WalletButton } from "@/utils/styled";
+import { FloatTech, OrbButton, Title } from "@/utils/styled";
 import Link from "next/link";
 import styled from "styled-components";
 
@@ -13,18 +12,6 @@ const Container = styled.div`
   text-align: center;
   z-index: 1;
   position: relative;
-`
-
-const Title = styled.h1`
-  font-family: var(--font-orbitron), sans-serif;
-  font-size: 5rem;
-  font-weight: 700;
-  letter-spacing: 5px;
-  color: var(--accent-color);
-  text-shadow: 0 0 25px var(--glow-color), 0 0 60px var(--accent-color);
-  animation: ${FloatTech} 5s ease-in-out infinite;
-  text-align: center;
-  margin-top: 6rem;
 `
 
 const Subtitle = styled.p`
@@ -40,16 +27,18 @@ const Enter = styled.div`
 `
 
 export default function HomePage() {
-  const { connectWallet } = useEthers();
   return (
     <div className="text-[#D3F4FF]">
-      <WalletButton onClick={connectWallet}>🔗 Connect Wallet</WalletButton>
-      <Container>
+      <Container className="overflow-x-hidden">
         <Title>Memory-ORB</Title>
         <Subtitle>连接神经云，唤醒你的多维记忆节点</Subtitle>
-        <div className="flex gap-4">
-          <Link href="/chat"><OrbButton>Build Memory</OrbButton></Link>
-          <Link href="/memories"><OrbButton>Explore Memories</OrbButton></Link>
+        <div className="flex flex-col gap-4 sm:flex-row">
+          <Link href="/chat">
+            <OrbButton>Build Memory</OrbButton>
+          </Link>
+          <Link href="/memories">
+            <OrbButton>Explore Memories</OrbButton>
+          </Link>
         </div>
         <Enter>
           Enter the Second World

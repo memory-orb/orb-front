@@ -5,14 +5,20 @@ import { useState } from "react";
 import { useLitProtocol } from "@/contexts/litProtocolContext";
 import { addToast } from "@heroui/react";
 import { ArweaveMappingValue } from "@/hooks/use-arweave-mapping";
+import { useEthers } from "@/contexts/ethersContext";
 
 export default function MemoryCard({ data }: { data: ArweaveMappingValue }) {
   const [isDecrypting, setIsDecrypting] = useState(false);
   const [status, setStatus] = useState("");
+  const { connectStatus } = useEthers();
   const { decryptFile } = useLitProtocol();
 
   const handleDownload = async () => {
     try {
+      if (connectStatus !== "connected") {
+        addToast({ color: "warning", title: "Wallet not connected", description: "Please connect your wallet" });
+        return;
+      }
       setIsDecrypting(true);
       setStatus("Fetching");
       const jsonData = await fetch(`https://arweave.net/${data.arweaveId}`);

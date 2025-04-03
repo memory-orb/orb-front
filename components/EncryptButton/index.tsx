@@ -14,6 +14,7 @@ import { AccessControlConditions } from "@lit-protocol/types";
 import { useArweave } from "@/contexts/arweaveContext";
 import { useLitProtocol } from "@/contexts/litProtocolContext";
 import { addToast, Divider, Input } from "@heroui/react";
+import { useEthers } from "@/contexts/ethersContext";
 
 interface UploadButtonProps {
   onUploadFinished?: (arweaveTransId: string) => void;
@@ -27,8 +28,8 @@ const EncryptButton: React.FC<UploadButtonProps> = ({ onUploadFinished, children
   const [description, setDescription] = useState<string>("");
   const [price, setPrice] = useState<string>("");
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const { addMemoryMapping } = useArweave();
-  const { uploadFile } = useArweave();
+  const { connectStatus } = useEthers();
+  const { addMemoryMapping, uploadFile } = useArweave();
   const { encryptFile } = useLitProtocol();
 
   const encoder = new TextEncoder();
@@ -82,13 +83,21 @@ const EncryptButton: React.FC<UploadButtonProps> = ({ onUploadFinished, children
     }
   };
 
+  const handleOpenModal = () => {
+    if (connectStatus !== "connected") {
+      addToast({ color: "warning", title: "Wallet not connected", description: "Please connect your wallet" });
+      return;
+    }
+    onOpen();
+  }
+
   return (
     <>
       {
-        children?.(onOpen) ?? (
+        children?.(handleOpenModal) ?? (
           <button
             className="w-[122px] h-[34px] rounded-[50px] bg-[rgba(255,255,255,0.7)]"
-            onClick={onOpen}
+            onClick={handleOpenModal}
             disabled={isUploading}
           >
             <span className="font-normal text-[#666666] text-[16px]">

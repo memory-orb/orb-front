@@ -2,23 +2,9 @@
 import { useEffect, useState } from "react";
 import styles from "./memories.module.css";
 import MemoryCard from "@/components/MemoryCard";
-import styled from "styled-components";
-import { FloatTech } from "@/utils/styled";
 import { useArweave } from "@/contexts/arweaveContext";
 import { ArweaveMappingValue } from "@/hooks/use-arweave-mapping";
-
-const Title = styled.h1`
-  font-family: var(--font-orbitron), sans-serif;
-  font-size: 5rem;
-  margin-top: 0.67em;
-  margin-bottom: 0.67em;
-  font-weight: 700;
-  letter-spacing: 5px;
-  color: var(--accent-color);
-  text-align: center;
-  text-shadow: 0 0 25px var(--glow-color), 0 0 60px var(--accent-color);
-  animation: ${FloatTech} 5s ease-in-out infinite;
-`
+import { Title } from "@/utils/styled";
 
 export default function MemoriesPage() {
   const [memoryList, setMemoryList] = useState<ArweaveMappingValue[]>([]);

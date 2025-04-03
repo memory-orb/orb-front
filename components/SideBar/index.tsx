@@ -3,6 +3,8 @@ import styled from "styled-components";
 
 const Sidebar = styled.div`
   position: fixed;
+  display: flex;
+  flex-direction: column;
   top: 50%;
   left: 20px;
   transform: translateY(-50%);
@@ -13,6 +15,13 @@ const Sidebar = styled.div`
   padding: 1rem;
   z-index: 2;
   box-shadow: 0 0 15px rgba(141, 224, 240, 0.2);
+
+  @media (max-width: 768px) {
+    flex-direction: row;
+    padding: 0.5rem;
+    top: 10px;
+    transform: none;
+  }
 `;
 
 const NavLink = styled(Link)`
@@ -27,6 +36,11 @@ const NavLink = styled(Link)`
   transition: 0.3s ease;
   padding: 8px 12px;
   border-radius: 12px;
+
+  @media (max-width: 768px) {
+    margin: 0 0;
+  }
+
   &:hover {
     background-color: rgba(141, 224, 240, 0.1);
     color: var(--accent-color);
@@ -38,10 +52,10 @@ export default function SideBar() {
   return (
     <Sidebar>
       <NavLink href="/chat">
-        🧠 <span className="sm:visible collapse">Build</span>
+        🧠 <span>Build</span>
       </NavLink>
       <NavLink href="/memories">
-        📂 <span className="sm:visible collapse">Explore</span>
+        📂 <span>Explore</span>
       </NavLink>
     </Sidebar>
   );

@@ -6,29 +6,32 @@ import { errorFunction, networks } from "@/utils/constants";
 
 interface EthersState {
   currentNetworkId?: string;
+  connectStatus: "disconnected" | "connecting" | "connected";
   walletAddress: string | null;
 };
 
 const initialState: EthersState = {
+  connectStatus: "disconnected",
   walletAddress: null,
 };
 
 interface EthersContext extends EthersState {
   requireNetwork: (chainId: keyof typeof networks) => Promise<void>;
   requireProvider: () => Promise<ethers.providers.Web3Provider>;
-  connectWallet: () => Promise<void>;
 }
 
 const ethersContext = createContext<EthersContext>({
   ...initialState,
   requireNetwork: errorFunction,
   requireProvider: errorFunction,
-  connectWallet: errorFunction,
 });
 
 type EthersAction =
   | { action: "CHANGE_NETWORK", networkId: string }
-  | { action: "ADDRESS_CHANGES", address: string };
+  | { action: "ADDRESS_CHANGES", address: string }
+  | { action: "WALLET_CONNECTING" }
+  | { action: "WALLET_DISCONNECTED" }
+  | { action: "WALLET_CONNECTED", address: string };
 
 const ethersReducer = (state: EthersState, action: EthersAction): EthersState => {
   switch (action.action) {
@@ -36,6 +39,12 @@ const ethersReducer = (state: EthersState, action: EthersAction): EthersState =>
       return { ...state, currentNetworkId: action.networkId };
     case "ADDRESS_CHANGES":
       return { ...state, walletAddress: action.address };
+    case "WALLET_CONNECTING":
+      return { ...state, connectStatus: "connecting" };
+    case "WALLET_CONNECTED":
+      return { ...state, connectStatus: "connected" };
+    case "WALLET_DISCONNECTED":
+      return { ...state, connectStatus: "disconnected", walletAddress: null };
     default:
       return state;
   }
@@ -52,30 +61,27 @@ export const EthersProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
-  const connectWallet = useCallback(async () => {
-    if (!window.ethereum) {
-      addToast({ title: "No wallet installed", description: "Please install MetaMask or any other wallet" });
-      return;
-    }
-    let usedProvider = provider;
-    if (!usedProvider) {
-      usedProvider = new ethers.providers.Web3Provider(window.ethereum, 'any');
-      setProvider(usedProvider);
-    }
-    const accounts = await usedProvider.send("eth_requestAccounts", []);
-    console.log("Web3 Accounts:", accounts);
-  }, [provider]);
-
   const requireProvider = useCallback(
     async () => {
-      if (!provider) {
-        throw new Error("Provider not initialized");
+      if (state.connectStatus === "connecting") {
+        throw new Error("Already connecting to wallet");
       }
-      const accounts = await provider.send("eth_requestAccounts", []);
+      dispatch({ action: "WALLET_CONNECTING" });
+      if (!window.ethereum) {
+        dispatch({ action: "WALLET_DISCONNECTED" });
+        throw new Error("No wallet installed");
+      }
+      let usedProvider = provider;
+      if (!usedProvider) {
+        usedProvider = new ethers.providers.Web3Provider(window.ethereum, 'any');
+        setProvider(usedProvider);
+      }
+      const accounts = await usedProvider.send("eth_requestAccounts", []);
       console.log("Web3 Accounts:", accounts);
-      return provider;
+      dispatch({ action: "WALLET_CONNECTED", address: accounts[0] });
+      return usedProvider;
     },
-    [provider]
+    [provider, state.connectStatus],
   );
 
   const requireNetwork = useCallback(async (chainKey: keyof typeof networks) => {
@@ -102,7 +108,6 @@ export const EthersProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <ethersContext.Provider value={{
       ...state,
-      connectWallet,
       requireNetwork,
       requireProvider,
     }}>

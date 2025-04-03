@@ -54,26 +54,23 @@ export const OrbButtonSmall = styled.button`
   }
 `
 
-export const WalletButton = styled.button`
-  position: fixed;
-  top: 20px;
-  right: 30px;
-  padding: 8px 16px;
-  border: 1px solid var(--accent-color);
-  border-radius: 20px;
-  background-color: rgba(255, 255, 255, 0.02);
-  backdrop-filter: blur(5px);
-  color: var(--text-color);
-  cursor: pointer;
-  z-index: 2;
-  transition: 0.3s;
-  &:hover {
-    background-color: var(--accent-color);
-    color: #0A0F1A;
-  }
-`
-
 export const FloatTech = keyframes`
   0%, 100% { transform: translateY(0); filter: brightness(1); }
   50% { transform: translateY(-12px) scale(1.02); filter: brightness(1.2); }
+`
+
+export const Title = styled.h1`
+  font-family: var(--font-orbitron), sans-serif;
+  font-size: 5rem;
+  font-weight: 700;
+  letter-spacing: 5px;
+  color: var(--accent-color);
+  text-shadow: 0 0 25px var(--glow-color), 0 0 60px var(--accent-color);
+  animation: ${FloatTech} 5s ease-in-out infinite;
+  text-align: center;
+  margin-top: 6rem;
+
+  @media (max-width: 768px) {
+    font-size: 3rem;
+  }
 `

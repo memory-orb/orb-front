@@ -1,5 +1,6 @@
 "use client";
 import { useArweave } from "@/contexts/arweaveContext";
+import { useEthers } from "@/contexts/ethersContext";
 import { useLitProtocol } from "@/contexts/litProtocolContext";
 import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
@@ -16,6 +17,7 @@ import React, { useState } from "react";
 
 export default function DecryptButton({ children }: { children?: (openModal: () => void) => Readonly<React.ReactNode> }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { connectStatus } = useEthers();
   const { decryptFile } = useLitProtocol();
   const { fetchFile } = useArweave();
 
@@ -27,6 +29,10 @@ export default function DecryptButton({ children }: { children?: (openModal: () 
 
   const handleDownload = async () => {
     try {
+      if (connectStatus !== "connected") {
+        addToast({ color: "warning", title: "Wallet not connected", description: "Please connect your wallet" });
+        return;
+      }
       setIsDecrypting(true);
       setStatusText("Decrypting...");
       const fileBuffer = await fetchFile(arweaveId);
