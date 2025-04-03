@@ -16,12 +16,14 @@ const initialState: EthersState = {
 interface EthersContext extends EthersState {
   requireNetwork: (chainId: keyof typeof networks) => Promise<void>;
   requireProvider: () => Promise<ethers.providers.Web3Provider>;
+  connectWallet: () => Promise<void>;
 }
 
 const ethersContext = createContext<EthersContext>({
   ...initialState,
   requireNetwork: errorFunction,
   requireProvider: errorFunction,
+  connectWallet: errorFunction,
 });
 
 type EthersAction =
@@ -45,8 +47,24 @@ export const EthersProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     console.log("Initializing Ethers provider...");
-    setProvider(new ethers.providers.Web3Provider(window.ethereum, 'any'))
+    if (window.ethereum) {
+      setProvider(new ethers.providers.Web3Provider(window.ethereum, 'any'));
+    }
   }, []);
+
+  const connectWallet = useCallback(async () => {
+    if (!window.ethereum) {
+      addToast({ title: "No wallet installed", description: "Please install MetaMask or any other wallet" });
+      return;
+    }
+    let usedProvider = provider;
+    if (!usedProvider) {
+      usedProvider = new ethers.providers.Web3Provider(window.ethereum, 'any');
+      setProvider(usedProvider);
+    }
+    const accounts = await usedProvider.send("eth_requestAccounts", []);
+    console.log("Web3 Accounts:", accounts);
+  }, [provider]);
 
   const requireProvider = useCallback(
     async () => {
@@ -84,6 +102,7 @@ export const EthersProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <ethersContext.Provider value={{
       ...state,
+      connectWallet,
       requireNetwork,
       requireProvider,
     }}>

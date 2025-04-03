@@ -1,4 +1,5 @@
 "use client";
+import { useEthers } from "@/contexts/ethersContext";
 import { FloatTech, OrbButton, WalletButton } from "@/utils/styled";
 import Link from "next/link";
 import styled from "styled-components";
@@ -39,9 +40,10 @@ const Enter = styled.div`
 `
 
 export default function HomePage() {
+  const { connectWallet } = useEthers();
   return (
     <div className="text-[#D3F4FF]">
-      <WalletButton>🔗 Connect Wallet</WalletButton>
+      <WalletButton onClick={connectWallet}>🔗 Connect Wallet</WalletButton>
       <Container>
         <Title>Memory-ORB</Title>
         <Subtitle>连接神经云，唤醒你的多维记忆节点</Subtitle>
