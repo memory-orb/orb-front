@@ -16,7 +16,7 @@ const Sidebar = styled.div`
   z-index: 2;
   box-shadow: 0 0 15px rgba(141, 224, 240, 0.2);
 
-  @media (max-width: 768px) {
+  @media (max-width: 1024px) {
     flex-direction: row;
     padding: 0.5rem;
     top: 10px;
@@ -37,7 +37,7 @@ const NavLink = styled(Link)`
   padding: 8px 12px;
   border-radius: 12px;
 
-  @media (max-width: 768px) {
+  @media (max-width: 1024px) {
     margin: 0 0;
   }
 
@@ -46,16 +46,18 @@ const NavLink = styled(Link)`
     color: var(--accent-color);
     box-shadow: 0 0 8px var(--glow-color);
   }
-`
+`;
 
 export default function SideBar() {
   return (
     <Sidebar>
       <NavLink href="/chat">
-        🧠 <span>Build</span>
+        <span>🧠</span>
+        <span className="hidden sm:block">Build</span>
       </NavLink>
       <NavLink href="/memories">
-        📂 <span>Explore</span>
+        <span>📂</span>
+        <span className="hidden sm:block">Explore</span>
       </NavLink>
     </Sidebar>
   );
