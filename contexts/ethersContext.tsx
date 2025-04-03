@@ -1,6 +1,6 @@
 "use client";
 import { ethers } from "ethers";
-import { createContext, useCallback, useContext, useReducer, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useReducer, useState } from "react";
 import { addToast } from "@heroui/react";
 import { errorFunction, networks } from "@/utils/constants";
 
@@ -40,11 +40,19 @@ const ethersReducer = (state: EthersState, action: EthersAction): EthersState =>
 }
 
 export const EthersProvider = ({ children }: { children: React.ReactNode }) => {
-  const [provider] = useState<ethers.providers.Web3Provider>(() => new ethers.providers.Web3Provider(window.ethereum, 'any'));
+  const [provider, setProvider] = useState<ethers.providers.Web3Provider>();
   const [state, dispatch] = useReducer(ethersReducer, initialState);
+
+  useEffect(() => {
+    console.log("Initializing Ethers provider...");
+    setProvider(new ethers.providers.Web3Provider(window.ethereum, 'any'))
+  }, []);
 
   const requireProvider = useCallback(
     async () => {
+      if (!provider) {
+        throw new Error("Provider not initialized");
+      }
       const accounts = await provider.send("eth_requestAccounts", []);
       console.log("Web3 Accounts:", accounts);
       return provider;
@@ -53,6 +61,9 @@ export const EthersProvider = ({ children }: { children: React.ReactNode }) => {
   );
 
   const requireNetwork = useCallback(async (chainKey: keyof typeof networks) => {
+    if (!provider) {
+      throw new Error("Provider not initialized");
+    }
     const { chainId: currentChainId } = await provider.getNetwork();
     const { chainId: targetChainId } = networks[chainKey];
     if (ethers.utils.hexValue(targetChainId) !== ethers.utils.hexValue(currentChainId)) {
