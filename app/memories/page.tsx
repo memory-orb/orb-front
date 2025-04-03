@@ -1,10 +1,11 @@
 "use client";
-import { ArweaveMappingValue, useEthers } from "@/contexts/ethersContext";
 import { useEffect, useState } from "react";
 import styles from "./memories.module.css";
 import MemoryCard from "@/components/MemoryCard";
 import styled from "styled-components";
 import { FloatTech } from "@/utils/styled";
+import { useArweave } from "@/contexts/arweaveContext";
+import { ArweaveMappingValue } from "@/hooks/use-arweave-mapping";
 
 const Title = styled.h1`
   font-family: var(--font-orbitron), sans-serif;
@@ -22,22 +23,24 @@ const Title = styled.h1`
 export default function MemoriesPage() {
   const [memoryList, setMemoryList] = useState<ArweaveMappingValue[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const { getUploadedList, getTotalRegisteredAddresses } = useEthers();
+  const { getUploadedMemories, getMemoryAmount } = useArweave();
 
   useEffect(() => {
     const fetchUploadedList = async () => {
       try {
         setLoading(true);
-        const uploadedList = await getUploadedList(0, 1);
+        console.log("Loading memory list");
+        const uploadedList = await getUploadedMemories(0, 1);
         setMemoryList(uploadedList);
       } catch (error) {
         console.error("获取记忆列表失败:", error);
       } finally {
+        console.log("Loading memory list finished");
         setLoading(false);
       }
     };
     fetchUploadedList();
-  }, [getTotalRegisteredAddresses, getUploadedList]);
+  }, [getMemoryAmount, getUploadedMemories]);
 
   return (
     <div className="px-8 py-16 m-auto max-w-[1000px]">

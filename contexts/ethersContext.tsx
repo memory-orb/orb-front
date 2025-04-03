@@ -1,40 +1,27 @@
 "use client";
-import { BigNumber, ethers } from "ethers";
-import { createContext, useCallback, useContext, useEffect, useReducer, useRef, useState } from "react";
-import arweaveMappingAbi from "@/artifacts/contracts/ArweaveMapping.sol/ArweaveMapping.json";
+import { ethers } from "ethers";
+import { createContext, useCallback, useContext, useReducer, useState } from "react";
+import { addToast } from "@heroui/react";
+import { errorFunction, networks } from "@/utils/constants";
 
 interface EthersState {
-  provider: ethers.providers.Web3Provider | null;
-  currentNetworkId: string | null;
+  currentNetworkId?: string;
   walletAddress: string | null;
 };
 
 const initialState: EthersState = {
-  provider: null,
-  currentNetworkId: null,
   walletAddress: null,
 };
 
-export interface ArweaveMappingValue {
-  address: string;
-  arweaveId: string;
-  price: string;
-  description: string;
-}
-
 interface EthersContext extends EthersState {
-  switchNetwork: (chainId: string) => Promise<void>;
-  getTotalRegisteredAddresses: () => Promise<number>;
-  getUploadedList: (offset: number, limit: number) => Promise<ArweaveMappingValue[]>;
-  setArweaveMapping: (params: Omit<ArweaveMappingValue, 'address'>) => Promise<void>;
+  requireNetwork: (chainId: keyof typeof networks) => Promise<void>;
+  requireProvider: () => Promise<ethers.providers.Web3Provider>;
 }
 
 const ethersContext = createContext<EthersContext>({
   ...initialState,
-  switchNetwork: async () => { },
-  getTotalRegisteredAddresses: async () => { return 0; },
-  getUploadedList: async () => { return []; },
-  setArweaveMapping: async () => { },
+  requireNetwork: errorFunction,
+  requireProvider: errorFunction,
 });
 
 type EthersAction =
@@ -53,89 +40,41 @@ const ethersReducer = (state: EthersState, action: EthersAction): EthersState =>
 }
 
 export const EthersProvider = ({ children }: { children: React.ReactNode }) => {
-  const [provider, setProvider] = useState<ethers.providers.Web3Provider | null>(null);
-  const [bscProvider, setBscProvider] = useState<ethers.providers.JsonRpcProvider | null>(null);
+  const [provider] = useState<ethers.providers.Web3Provider>(() => new ethers.providers.Web3Provider(window.ethereum, 'any'));
   const [state, dispatch] = useReducer(ethersReducer, initialState);
-  const [contract, setContract] = useState<ethers.Contract | null>(null);
-  const initialized = useRef(false);
 
-  useEffect(() => {
-    const contractAddress = process.env.NEXT_PUBLIC_ARWEAVE_MAPPING_CONTRACT;
-    if (!contractAddress) throw new Error("Contract address is not configured");
-    if (!bscProvider) return;
-    const newContract = new ethers.Contract(contractAddress, arweaveMappingAbi.abi, bscProvider);
-    setContract(newContract);
-  }, [bscProvider]);
-
-  useEffect(() => {
-    if (initialized.current) return;
-    initialized.current = true;
-    const provider = new ethers.providers.Web3Provider(window.ethereum, 'any');
-    window.ethereum.on("accountsChanged", (accounts: string[]) => {
-      dispatch({ action: "ADDRESS_CHANGES", address: accounts[0] });
-    });
-    provider.send("eth_requestAccounts", []).then((accounts: string[]) => {
-      dispatch({ action: "ADDRESS_CHANGES", address: accounts[0] });
-    });
-    setProvider(provider);
-
-    const bscProvider = new ethers.providers.JsonRpcProvider("https://broken-evocative-surf.bsc-testnet.quiknode.pro/11f750973f8f44ad331023073451c2eaee951114/");
-    setBscProvider(bscProvider);
-  }, []);
-
-  useEffect(() => {
-    (async () => {
-      if (!provider) return;
+  const requireProvider = useCallback(
+    async () => {
       const accounts = await provider.send("eth_requestAccounts", []);
       console.log("Web3 Accounts:", accounts);
-    })();
-  }, [provider]);
-
-  const getTotalRegisteredAddresses = useCallback(async () => {
-    if (!contract) return 0;
-    const addresses = await contract.getTotalRegisteredAddresses() as BigNumber;
-    console.log("Registered Addresses:", addresses, typeof addresses);
-    return addresses.toNumber();
-  }, [contract]);
-
-  const getUploadedList = useCallback(async (offset: number, limit: number): Promise<ArweaveMappingValue[]> => {
-    if (!contract) return [];
-    const addresses = await contract.getRegisteredAddresses(offset, limit);
-    console.log("Uploaded Addresses:", addresses);
-    return addresses.map(([address, arweaveId, price, description]: string[]) => ({
-      address,
-      arweaveId,
-      price,
-      description,
-    }));
-  }, [contract]);
-
-  const switchNetwork = useCallback(async (chainId: string) => {
-    if (!provider) { return; }
-    await provider.send("wallet_switchEthereumChain", [{ chainId }]);
-  }, [provider]);
-
-  const setArweaveMapping = useCallback<EthersContext["setArweaveMapping"]>(
-    async (params: Omit<ArweaveMappingValue, 'address'>) => {
-      const { arweaveId, price, description } = params;
-      if (!provider || !contract) throw new Error("Provider or contract not initialized");
-      switchNetwork("0x61");
-      const signer = provider.getSigner();
-      const contractWithSigner = contract.connect(signer);
-      const tx = await contractWithSigner.setArweaveTxId(arweaveId, description, price);
-      await tx.wait();
+      return provider;
     },
-    [provider, contract, switchNetwork]
+    [provider]
   );
+
+  const requireNetwork = useCallback(async (chainKey: keyof typeof networks) => {
+    const { chainId: currentChainId } = await provider.getNetwork();
+    const { chainId: targetChainId } = networks[chainKey];
+    if (ethers.utils.hexValue(targetChainId) !== ethers.utils.hexValue(currentChainId)) {
+      addToast({ title: `Switching network to ${networks[chainKey].chainName}` });
+      try {
+        await provider.send("wallet_switchEthereumChain", [{ chainId: ethers.utils.hexValue(targetChainId) }]);
+      } catch (error) {
+        const { code: errorCode } = error as { code: number };
+        if (errorCode === 4902) {
+          await provider.send("wallet_addEthereumChain", [networks[chainKey]]);
+        } else {
+          throw error;
+        }
+      }
+    }
+  }, [provider]);
 
   return (
     <ethersContext.Provider value={{
       ...state,
-      provider,
-      switchNetwork,
-      getTotalRegisteredAddresses,
-      getUploadedList,
-      setArweaveMapping
+      requireNetwork,
+      requireProvider,
     }}>
       {children}
     </ethersContext.Provider>

@@ -22,10 +22,10 @@ const OPERATOR_OPTIONS = [
   { label: 'OR', value: 'or' },
 ];
 
-const DEFAULT_CONDITION: AccsDefaultParams = {
+const DEFAULT_CONDITION: Readonly<AccsDefaultParams> = {
   contractAddress: '',
   standardContractType: '',
-  chain: 'ethereum',
+  chain: 'sepolia',
   method: 'eth_getBalance',
   parameters: [":userAddress"],
   returnValueTest: {

@@ -1,4 +1,6 @@
 "use client";
+import { useArweaveMapping } from "@/hooks/use-arweave-mapping";
+import { errorFunction } from "@/utils/constants";
 import Arweave from "arweave";
 import { JWKInterface } from "arweave/node/lib/wallet";
 import {
@@ -9,18 +11,22 @@ import {
   useState,
 } from "react";
 
-const ArweaveContext = createContext<{
-  walletAddress: string | null;
+interface ArweaveContextInterface extends ReturnType<typeof useArweaveMapping> {
+  walletAddress?: string;
   balance: string;
   generateKey: () => Promise<void>;
   uploadFile: (data: ArrayBuffer) => Promise<string | undefined>;
   fetchFile: (transactionId: string) => Promise<ArrayBuffer>;
-}>({
-  walletAddress: null,
+}
+
+const ArweaveContext = createContext<ArweaveContextInterface>({
   balance: "",
-  generateKey: async () => { },
-  uploadFile: async (data: ArrayBuffer) => { throw new Error("uploadFile not implemented"); },
-  fetchFile: async (transactionId: string) => { throw new Error("fetchFile not implemented"); },
+  generateKey: errorFunction,
+  uploadFile: errorFunction,
+  fetchFile: errorFunction,
+  addMemoryMapping: errorFunction,
+  getMemoryAmount: errorFunction,
+  getUploadedMemories: errorFunction,
 });
 
 export function ArweaveProvider({ children }: { children: React.ReactNode }) {
@@ -31,8 +37,9 @@ export function ArweaveProvider({ children }: { children: React.ReactNode }) {
   }));
 
   const [privateKey, setPrivateKey] = useState<JWKInterface | "use_wallet">("use_wallet");
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [walletAddress, setWalletAddress] = useState<string>();
   const [balance, setBalance] = useState("");
+  const arweaveMapping = useArweaveMapping();
 
   const generateKey = useCallback(async () => {
     const generatedKey = await client.wallets.generate();
@@ -126,6 +133,7 @@ export function ArweaveProvider({ children }: { children: React.ReactNode }) {
         fetchFile,
         uploadFile,
         generateKey,
+        ...arweaveMapping,
       }}
     >
       {children}

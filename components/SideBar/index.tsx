@@ -6,7 +6,6 @@ const Sidebar = styled.div`
   top: 50%;
   left: 20px;
   transform: translateY(-50%);
-  width: 180px;
   background: rgba(255, 255, 255, 0.04);
   backdrop-filter: blur(8px);
   border: 1px solid rgba(141, 224, 240, 0.3);
@@ -39,10 +38,10 @@ export default function SideBar() {
   return (
     <Sidebar>
       <NavLink href="/chat">
-        🧠 <span>Build</span>
+        🧠 <span className="sm:visible collapse">Build</span>
       </NavLink>
       <NavLink href="/memories">
-        📂 <span>Explore</span>
+        📂 <span className="sm:visible collapse">Explore</span>
       </NavLink>
     </Sidebar>
   );

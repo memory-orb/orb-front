@@ -1,10 +1,10 @@
 "use client";
-import { ArweaveMappingValue } from "@/contexts/ethersContext";
 import styles from "./memorie-card.module.css";
 import { OrbButton } from "@/utils/styled";
 import { useState } from "react";
 import { useLitProtocol } from "@/contexts/litProtocolContext";
 import { addToast } from "@heroui/react";
+import { ArweaveMappingValue } from "@/hooks/use-arweave-mapping";
 
 export default function MemoryCard({ data }: { data: ArweaveMappingValue }) {
   const [isDecrypting, setIsDecrypting] = useState(false);
@@ -34,8 +34,9 @@ export default function MemoryCard({ data }: { data: ArweaveMappingValue }) {
       a.click();
       URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("Error downloading file:", error);
-      addToast({ color: "danger", title: "Export memory failed", description: `${error}` });
+      console.error("Error decrypting file:", error);
+      const { cause } = error as { cause?: { reason: string } };
+      addToast({ color: "danger", title: "Export memory failed", description: `${cause?.reason ?? error}` });
     } finally {
       setIsDecrypting(false);
       setStatus("");

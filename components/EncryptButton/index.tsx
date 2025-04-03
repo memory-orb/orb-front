@@ -13,7 +13,6 @@ import AccessControlConditionsEditor from "./access-condition-editor";
 import { AccessControlConditions } from "@lit-protocol/types";
 import { useArweave } from "@/contexts/arweaveContext";
 import { useLitProtocol } from "@/contexts/litProtocolContext";
-import { useEthers } from "@/contexts/ethersContext";
 import { addToast, Divider, Input } from "@heroui/react";
 
 interface UploadButtonProps {
@@ -28,7 +27,7 @@ const EncryptButton: React.FC<UploadButtonProps> = ({ onUploadFinished, children
   const [description, setDescription] = useState<string>("");
   const [price, setPrice] = useState<string>("");
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const { setArweaveMapping } = useEthers();
+  const { addMemoryMapping } = useArweave();
   const { uploadFile } = useArweave();
   const { encryptFile } = useLitProtocol();
 
@@ -63,7 +62,7 @@ const EncryptButton: React.FC<UploadButtonProps> = ({ onUploadFinished, children
       const arweaveTransId = await uploadFile(uint8Array.buffer as ArrayBuffer);
       if (arweaveTransId) {
         setStatusMessage(`Uploaded arweave id: ${arweaveTransId}, sharing...`);
-        await setArweaveMapping({
+        await addMemoryMapping({
           arweaveId: arweaveTransId,
           price: price,
           description: description,
@@ -75,8 +74,9 @@ const EncryptButton: React.FC<UploadButtonProps> = ({ onUploadFinished, children
       }
     } catch (error) {
       console.error("Error during file upload:", error);
+      const { cause: errorCause } = error as { cause?: { message: string } };
+      addToast({ title: "Upload failed", description: errorCause?.message ?? `${error}`, color: "danger" });
       setStatusMessage("Upload failed");
-      throw error;
     } finally {
       setUploading(false);
     }
@@ -117,7 +117,7 @@ const EncryptButton: React.FC<UploadButtonProps> = ({ onUploadFinished, children
               </ModalBody>
               <ModalFooter>
                 <span>{statusMessage}</span>
-                <Button onPress={onClose}>Cancel</Button>
+                <Button onPress={onClose} disabled={isUploading}>Cancel</Button>
                 <Button
                   color="primary"
                   isLoading={isUploading}

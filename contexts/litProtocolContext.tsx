@@ -4,9 +4,9 @@ import { createSiweMessageWithRecaps, generateAuthSig, LitAccessControlCondition
 import { LIT_ABILITY, LIT_NETWORK } from "@lit-protocol/constants";
 import { LitContracts } from "@lit-protocol/contracts-sdk";
 import { encryptFile as litEncryptFile } from "@lit-protocol/encryption";
-import { disconnectWeb3, LitNodeClient } from "@lit-protocol/lit-node-client";
+import { LitNodeClient } from "@lit-protocol/lit-node-client";
 import { AccessControlConditions, EncryptResponse, LIT_NETWORKS_KEYS, LitResourceAbilityRequest } from "@lit-protocol/types";
-import { createContext, useCallback, useContext, useEffect, useReducer, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useReducer, useState } from "react";
 import { useEthers } from "./ethersContext";
 
 interface LitProtocolProviderState {
@@ -20,6 +20,7 @@ const initialState: LitProtocolProviderState = {
 interface EncryptFileParams {
   file: Blob;
   condition: AccessControlConditions;
+  onProcess?: (status: string) => void;
 }
 
 interface DecryptFileParams {
@@ -66,97 +67,79 @@ const litProtocolStateReducer = (state: LitProtocolProviderState, action: LitPro
 }
 
 export function LitProtocolProvider({ children }: { children: React.ReactNode }) {
-  const [litNodeClient, setLitNodeClient] = useState<LitNodeClient>(() => new LitNodeClient({
-    litNetwork: LIT_NETWORK.DatilDev,
-  }));
-  const { provider } = useEthers();
+  const [litNetwork, setLitNetwork] = useState<LIT_NETWORKS_KEYS>(LIT_NETWORK.DatilDev);
+  const [litNodeClient, setLitNodeClient] = useState<LitNodeClient>(() => new LitNodeClient({ litNetwork }));
+  const { requireProvider, requireNetwork } = useEthers();
   const [state, dispatch] = useReducer(litProtocolStateReducer, initialState);
-  const initialized = useRef(false);
+  // const initialized = useRef(false);
   const [usedBlockchain] = useState<LPACC_EVM_BASIC["chain"]>("sepolia");
 
+  // useEffect(() => {
+  //   if (initialized.current) return;
+  //   initialized.current = true;
+  //   (async () => {
+  //     try {
+  //       dispatch({ type: "CONNECTING" });
+  //       await litNodeClient.connect();
+  //       dispatch({ type: "CONNECTED" });
+  //     } catch (error) {
+  //       console.error("Lit client connect error:", error);
+  //       dispatch({ type: "DISCONNECTED" });
+  //     }
+  //   })();
+  // }, [litNodeClient]);
+
   useEffect(() => {
-    if (initialized.current) return;
-    initialized.current = true;
-    (async () => {
-      try {
-        dispatch({ type: "CONNECTING" });
-        await litNodeClient.connect();
-        dispatch({ type: "CONNECTED" });
-      } catch (error) {
-        console.error("Lit client connect error:", error);
-        dispatch({ type: "DISCONNECTED" });
-      }
-    })();
-  }, [litNodeClient]);
-
-  const switchLitNetwork = useCallback((network: LIT_NETWORKS_KEYS) => {
     const newClient = new LitNodeClient({
-      litNetwork: network,
+      litNetwork,
     });
-    (async () => {
-      try {
-        dispatch({ type: "CONNECTING" });
-        setLitNodeClient(newClient);
-        await newClient.connect();
-        dispatch({ type: "CONNECTED" });
-      } catch (error) {
-        console.error("Lit client connect error:", error);
-        dispatch({ type: "DISCONNECTED" });
-      }
-    })();
-  }, []);
+    setLitNodeClient(newClient);
+  }, [litNetwork]);
 
-  const encryptFile = useCallback<LitProtocolContext["encryptFile"]>(async (params: EncryptFileParams): Promise<EncryptResponse> => {
-    const { file, condition } = params;
-    if (state.status !== "connected") {
-      throw new Error("LitNodeClient is not connected");
-    }
+  const switchLitNetwork = useCallback(
+    (network: LIT_NETWORKS_KEYS) => {
+      const newClient = new LitNodeClient({
+        litNetwork: network,
+      });
+      (async () => {
+        try {
+          dispatch({ type: "CONNECTING" });
+          setLitNodeClient(newClient);
+          // await newClient.connect();
+          dispatch({ type: "CONNECTED" });
+        } catch (error) {
+          console.error("Lit client connect error:", error);
+          dispatch({ type: "DISCONNECTED" });
+        }
+      })();
+    },
+    []
+  );
+
+  const encryptFile = useCallback<LitProtocolContext["encryptFile"]>(async (params: EncryptFileParams) => {
+    const { file, condition, onProcess } = params;
     try {
+      onProcess?.("Connecting to Lit Node Client...");
+      await litNodeClient.connect();
+      onProcess?.("Encrypting file...");
       console.log("Encrypting using condition:", condition);
       const res = await litEncryptFile({
         chain: usedBlockchain,
         file,
         accessControlConditions: condition,
       }, litNodeClient);
-      console.log("Encrypt Res:", res);
+      onProcess?.("Encryption complete.");
       return res;
     } catch (error) {
       console.error("Error encrypting file:", error);
       throw error;
     }
-  }, [litNodeClient, state, usedBlockchain]);
+  }, [litNodeClient, usedBlockchain]);
 
   const getSessionSignatures = useCallback(async (condition: AccessControlConditions, onProcess?: (_: string) => void) => {
-    if (!provider) return;
+    const provider = await requireProvider();
     // Connect to the wallet
-    const { chainId } = await provider.getNetwork();
-    if (chainId !== 175188) {
-      try {
-        await provider.send("wallet_switchEthereumChain", [{
-          chainId: "0x2AC54"
-        }]);
-      } catch (error) {
-        console.error("Switch chain error:", error);
-        if ((error as { code?: number }).code !== 4902) {
-          throw error;
-        }
-        await provider.send("wallet_addEthereumChain", [{
-          chainId: "0x2AC54",
-          chainName: "Chronicle Yellowstone - Lit Protocol Testnet",
-          nativeCurrency: {
-            name: "Lit Protocol - Chronicle Yellowstone Testnet Token (tstLPX)",
-            symbol: "tstLPX",
-            decimals: 18
-          },
-          rpcUrls: ["https://yellowstone-rpc.litprotocol.com"],
-          blockExplorerUrls: ["https://yellowstone-explorer.litprotocol.com"]
-        }])
-        await provider.send("wallet_switchEthereumChain", [{
-          chainId: "0x2AC54"
-        }]);
-      }
-    }
-    await provider.send("eth_requestAccounts", []);
+    await requireNetwork("litTestnet");
 
     const signer = provider.getSigner();
     console.log("Signer:", signer);
@@ -174,8 +157,6 @@ export function LitProtocolProvider({ children }: { children: React.ReactNode })
     });
     onProcess?.("Connecting to Lit contract client...");
     await contractClient.connect();
-    console.log("Contract client:", contractClient);
-
     onProcess?.("Minting capacity credits NFT...");
     const { capacityTokenIdStr } = await contractClient.mintCapacityCreditsNFT({
       requestsPerKilosecond: 80,
@@ -238,7 +219,7 @@ export function LitProtocolProvider({ children }: { children: React.ReactNode })
       capacityDelegationAuthSig,
     });
     return sessionSigs;
-  }, [litNodeClient, provider, usedBlockchain]);
+  }, [litNodeClient, usedBlockchain, requireProvider, requireNetwork]);
 
   const decryptFile = useCallback<LitProtocolContext["decryptFile"]>(async (data: DecryptFileParams): Promise<Blob> => {
     try {
@@ -246,9 +227,9 @@ export function LitProtocolProvider({ children }: { children: React.ReactNode })
       if (!ciphertext || !dataToEncryptHash) {
         throw new Error("Invalid data format");
       }
-      if (state.status !== "connected") {
-        throw new Error("LitNodeClient is not connected");
-      }
+      onProcess?.("Connecting to Lit Node Client...");
+      litNodeClient.connect();
+      onProcess?.("Decrypting...");
       console.log("Decrypting using condition:", condition);
       const sessionSigs = await getSessionSignatures(condition, onProcess);
       if (!sessionSigs) {
@@ -261,11 +242,12 @@ export function LitProtocolProvider({ children }: { children: React.ReactNode })
         dataToEncryptHash,
         sessionSigs,
       });
+      onProcess?.("Decryption complete.");
       return new Blob([decryptedData], { type: "application/octet-stream" });
     } finally {
-      disconnectWeb3();
+      // disconnectWeb3();
     }
-  }, [getSessionSignatures, litNodeClient, state, usedBlockchain]);
+  }, [getSessionSignatures, litNodeClient, usedBlockchain]);
 
   return (
     <LitProtocolContext.Provider value={{

@@ -1,7 +1,7 @@
 "use client";
 import { FloatTech, OrbButton, WalletButton } from "@/utils/styled";
 import Link from "next/link";
-import styled, { keyframes } from "styled-components";
+import styled from "styled-components";
 
 const Container = styled.div`
   display: flex;
