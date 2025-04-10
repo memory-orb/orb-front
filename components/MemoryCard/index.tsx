@@ -3,7 +3,7 @@ import styles from "./memorie-card.module.css";
 import { OrbButton } from "@/utils/styled";
 import { useState } from "react";
 import { useLitProtocol } from "@/contexts/litProtocolContext";
-import { addToast } from "@heroui/react";
+import { addToast, Tooltip } from "@heroui/react";
 import { ArweaveMappingValue } from "@/hooks/use-arweave-mapping";
 import { useEthers } from "@/contexts/ethersContext";
 
@@ -53,8 +53,10 @@ export default function MemoryCard({ data }: { data: ArweaveMappingValue }) {
     <div className={styles.memoryCard}>
       <div className={styles.memoryContent}>
         <div className={styles.titleRow}>
-          <div className={styles.memoryTitle}>{data.address.substring(0, 6)}...{data.address.substring(data.address.length - 4)}</div>
-          <div className={styles.balanceRequirement}>💰 钱包余额 ≥ {data.price} 才可下载</div>
+          <Tooltip content={data.address} placement="top-start">
+            <div className={styles.memoryTitle}>{data.address.substring(0, 6)}...{data.address.substring(data.address.length - 4)}</div>
+          </Tooltip>
+          <div className={styles.balanceRequirement}>💰 下载条件: {data.price}</div>
         </div>
         <div className="mt-2">
           <OrbButton onClick={handleDownload}>{isDecrypting ? status : "Download"}</OrbButton>

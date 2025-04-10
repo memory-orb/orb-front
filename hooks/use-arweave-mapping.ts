@@ -1,7 +1,8 @@
+"use client";
 import { useEthers } from "@/contexts/ethersContext";
 import { BigNumber, ethers } from "ethers";
 import { useState } from "react";
-import arweaveMappingAbi from "@/artifacts/contracts/ArweaveMapping.sol/ArweaveMapping.json";
+import { abi as MemoryMappingAbi } from "@/artifacts/contracts/MemoryMapping.sol/MemoryMapping.json";
 
 export interface ArweaveMappingValue {
   address: string;
@@ -15,12 +16,12 @@ const bscTestnetRpc = "https://broken-evocative-surf.bsc-testnet.quiknode.pro/11
 export const useArweaveMapping = () => {
   const { requireProvider, requireNetwork } = useEthers();
   const [bscProvider] = useState(() => new ethers.providers.JsonRpcProvider(bscTestnetRpc));
-  const [arweaveMappingContract] = useState(() => new ethers.Contract(process.env.NEXT_PUBLIC_ARWEAVE_MAPPING_CONTRACT!, arweaveMappingAbi.abi, bscProvider));
+  const [memoryMappingContract] = useState(() => new ethers.Contract(process.env.NEXT_PUBLIC_ARWEAVE_MAPPING_CONTRACT!, MemoryMappingAbi, bscProvider));
 
   return {
-    getUploadedMemories: async (offset: number, limit: number): Promise<ArweaveMappingValue[]> => {
-      if (!arweaveMappingContract) return [];
-      const result = await arweaveMappingContract.getRegisteredAddresses(offset, limit);
+    getUploadedMemories: async (): Promise<ArweaveMappingValue[]> => {
+      if (!memoryMappingContract) return [];
+      const result = await memoryMappingContract.getLatestMemories();
       return result.map(([address, arweaveId, price, description]: string[]) => ({
         address,
         arweaveId,
@@ -29,20 +30,20 @@ export const useArweaveMapping = () => {
       }));
     },
     getMemoryAmount: async (): Promise<number> => {
-      if (!arweaveMappingContract) return 0;
-      const total = await arweaveMappingContract.getTotalRegisteredAddresses() as BigNumber;
+      if (!memoryMappingContract) return 0;
+      const total = await memoryMappingContract.getTotalRegisteredAddresses() as BigNumber;
       return total.toNumber();
     },
     addMemoryMapping: async (params: Omit<ArweaveMappingValue, 'address'>) => {
       const { arweaveId, price, description } = params;
-      if (!arweaveMappingContract) throw new Error("Arweave mapping contract not initialized");
+      if (!memoryMappingContract) throw new Error("Arweave mapping contract not initialized");
 
       const ethProvider = await requireProvider();
       await requireNetwork("bscTestnet");
       const signer = ethProvider.getSigner();
-      const contractWithSigner = arweaveMappingContract.connect(signer);
+      const contractWithSigner = memoryMappingContract.connect(signer);
       console.log(contractWithSigner);
-      const tx = await contractWithSigner.setArweaveTxId(arweaveId, description, price);
+      const tx = await contractWithSigner.addMemory(arweaveId, description, price);
       console.log(tx);
     },
   };

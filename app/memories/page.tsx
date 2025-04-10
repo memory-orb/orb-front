@@ -8,15 +8,16 @@ import { Title } from "@/utils/styled";
 
 export default function MemoriesPage() {
   const [memoryList, setMemoryList] = useState<ArweaveMappingValue[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const { getUploadedMemories, getMemoryAmount } = useArweave();
 
   useEffect(() => {
     const fetchUploadedList = async () => {
+      if (loading) return;
       try {
         setLoading(true);
         console.log("Loading memory list");
-        const uploadedList = await getUploadedMemories(0, 1);
+        const uploadedList = await getUploadedMemories();
         setMemoryList(uploadedList);
       } catch (error) {
         console.error("获取记忆列表失败:", error);
