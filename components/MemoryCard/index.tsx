@@ -1,17 +1,15 @@
 "use client";
 import styles from "./memorie-card.module.css";
-import { OrbButton, OrbButtonMiddle, OrbButtonSmall } from "@/utils/styled";
+import { OrbButton } from "@/utils/styled";
 import { useState } from "react";
 import { useLitProtocol } from "@/contexts/litProtocolContext";
 import { addToast, Tooltip } from "@heroui/react";
 import { ArweaveMappingValue } from "@/hooks/use-arweave-mapping";
 import { useEthers } from "@/contexts/ethersContext";
-import { useRouter } from "next/navigation";
 
 export default function MemoryCard({ data }: { data: ArweaveMappingValue }) {
   const [isDecrypting, setIsDecrypting] = useState(false);
   const [status, setStatus] = useState("");
-  const router = useRouter();
   const { connectStatus } = useEthers();
   const { decryptFile } = useLitProtocol();
 
@@ -23,7 +21,7 @@ export default function MemoryCard({ data }: { data: ArweaveMappingValue }) {
       }
       setIsDecrypting(true);
       setStatus("Fetching");
-      const jsonData = await fetch(`https://arweave.net/${data.memoryId}`);
+      const jsonData = await fetch(`https://arweave.net/${data.arweaveId}`);
       const jsonText = await jsonData.text();
       const { ciphertext, dataToEncryptHash, condition, originalFileName } = JSON.parse(jsonText);
       if (!ciphertext || !dataToEncryptHash) {
@@ -53,21 +51,18 @@ export default function MemoryCard({ data }: { data: ArweaveMappingValue }) {
 
   return (
     <div className={styles.memoryCard}>
-      <div className="flex justify-between items-start flex-wrap">
+      <div className={styles.memoryContent}>
         <div className={styles.titleRow}>
           <Tooltip content={data.address} placement="top-start">
-            <div className="mb-2 text-2xl text-[#5dbae4] select-none cursor-pointer font-bold underline" onClick={() => router.push(`/creators/${data.address}`)}>
-              {data.address.substring(0, 6)}...{data.address.substring(data.address.length - 4)}
-            </div>
+            <div className={styles.memoryTitle}>{data.address.substring(0, 6)}...{data.address.substring(data.address.length - 4)}</div>
           </Tooltip>
           <div className={styles.balanceRequirement}>💰 下载条件: {data.price}</div>
         </div>
-        <div className="flex gap-4 mt-2">
-          <OrbButtonMiddle>Follow</OrbButtonMiddle>
-          <OrbButtonMiddle onClick={handleDownload}>{isDecrypting ? status : "Download"}</OrbButtonMiddle>
+        <div className="mt-2">
+          <OrbButton onClick={handleDownload}>{isDecrypting ? status : "Download"}</OrbButton>
         </div>
       </div>
       <div className={styles.memorySummary}>{data.description}</div>
     </div>
-  );
+  )
 }

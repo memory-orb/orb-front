@@ -42,7 +42,7 @@ const ethersReducer = (state: EthersState, action: EthersAction): EthersState =>
     case "WALLET_CONNECTING":
       return { ...state, connectStatus: "connecting" };
     case "WALLET_CONNECTED":
-      return { ...state, connectStatus: "connected", walletAddress: action.address };
+      return { ...state, connectStatus: "connected" };
     case "WALLET_DISCONNECTED":
       return { ...state, connectStatus: "disconnected", walletAddress: null };
     default:

@@ -26,8 +26,7 @@ const ArweaveContext = createContext<ArweaveContextInterface>({
   fetchFile: errorFunction,
   addMemoryMapping: errorFunction,
   getMemoryAmount: errorFunction,
-  getLatestMemories: errorFunction,
-  getUserMemories: errorFunction,
+  getUploadedMemories: errorFunction,
 });
 
 export function ArweaveProvider({ children }: { children: React.ReactNode }) {
