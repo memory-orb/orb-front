@@ -23,12 +23,11 @@ const WalletButton = styled.button`
 `
 
 export default function ConnectWallet() {
-  const { requireProvider, connectStatus } = useEthers();
+  const { requireProvider, connectStatus, walletAddress } = useEthers();
 
   return (
     <WalletButton disabled={connectStatus !== "disconnected"} onClick={async () => {
       try {
-        console.log("Connecting wallet...");
         await requireProvider();
         addToast({ title: "Wallet connected", color: "success" });
       } catch (error) {
@@ -36,7 +35,7 @@ export default function ConnectWallet() {
       }
     }}>
       {
-        connectStatus === "connected" ? "✅ Wallet Connected" :
+        connectStatus === "connected" ? walletAddress :
           connectStatus === "connecting" ? "🔄 Connecting..." : "🔗 Connect Wallet"
       }
     </WalletButton>
