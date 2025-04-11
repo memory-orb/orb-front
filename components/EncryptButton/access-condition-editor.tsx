@@ -12,11 +12,6 @@ import { FlexDiv } from '@/utils/styled';
 import { Select, SelectItem } from '@heroui/select';
 import { properties } from "@lit-protocol/accs-schemas/schemas/LPACC_EVM_BASIC"
 
-interface AccessControlConditionsEditorProps {
-  value: AccessControlConditions;
-  onChange: (conditions: AccessControlConditions) => void;
-}
-
 const OPERATOR_OPTIONS = [
   { label: 'AND', value: 'and' },
   { label: 'OR', value: 'or' },
@@ -34,11 +29,39 @@ const DEFAULT_CONDITION: Readonly<AccsDefaultParams> = {
   }
 };
 
+const CONDITION_PRESETS: Readonly<{ title: string, condition: AccsDefaultParams }[]> = [
+  {
+    title: "ETH Balance",
+    condition: {
+      ...DEFAULT_CONDITION,
+    }
+  },
+  {
+    title: "ERC20 Balance(USDT)",
+    condition: {
+      ...DEFAULT_CONDITION,
+      method: 'balanceOf',
+      contractAddress: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+      chain: 'ethereum',
+    }
+  }
+]
+
 const DEFAULT_OPERATOR: AccsOperatorParams = {
   operator: 'and'
 };
 
-const AccessControlConditionsEditor: React.FC<AccessControlConditionsEditorProps> = ({ value, onChange }) => {
+interface AccessControlConditionsEditorProps {
+  advancedMode: boolean;
+  value: AccessControlConditions;
+  onChange: (conditions: AccessControlConditions) => void;
+}
+
+const AccessControlConditionsEditor: React.FC<AccessControlConditionsEditorProps> = ({
+  advancedMode,
+  value,
+  onChange
+}) => {
   const [conditions, setConditions] = useState<AccessControlConditions>(value || []);
 
   useEffect(() => {
@@ -196,6 +219,7 @@ const AccessControlConditionsEditor: React.FC<AccessControlConditionsEditorProps
                       }}
                     />
                     <Input
+                      hidden
                       label="Contract Type"
                       value={item.standardContractType}
                       onValueChange={(newValue) => {
@@ -267,7 +291,7 @@ const AccessControlConditionsEditor: React.FC<AccessControlConditionsEditorProps
   };
 
   return (
-    <div className="access-control-editor">
+    <div>
       <h3>Access Control Conditions</h3>
       {conditions.length === 0 ? (
         <div>
