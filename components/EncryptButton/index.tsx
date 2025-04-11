@@ -113,8 +113,8 @@ const EncryptButton: React.FC<UploadButtonProps> = ({ onUploadFinished, children
             <>
               <ModalHeader className="select-none">Encrypt & Upload Memory</ModalHeader>
               <ModalBody>
-                <Input label="Description" value={description} onValueChange={setDescription} />
-                <Input label="Price" value={price} onValueChange={setPrice} />
+                <Input label="Description" placeholder="(eg. My favorite movie)" value={description} onValueChange={setDescription} />
+                <Input label="Price" placeholder="(eg. >0.01 ETH)" value={price} onValueChange={setPrice} />
                 <Divider />
                 <AccessControlConditionsEditor advancedMode={advancedMode} value={condition} onChange={(newCondition) => { setCondition(newCondition) }} />
                 <input

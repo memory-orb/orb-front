@@ -192,7 +192,7 @@ const AccessControlConditionsEditor: React.FC<AccessControlConditionsEditorProps
                   backgroundColor: '#fff'
                 }}>
                   <FlexDiv style={{ justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <h4 className='m-0'>条件</h4>
+                    <h4 className='m-0'>Condition</h4>
                     <Button onPress={() => removeItem(currentPath)} color='warning'>Remove</Button>
                   </FlexDiv>
 
@@ -205,7 +205,8 @@ const AccessControlConditionsEditor: React.FC<AccessControlConditionsEditorProps
                       ))}
                     </Select>
                     <Input
-                      label="Contract Address"
+                      label="Contract Address "
+                      placeholder='(eg.Your ERC20 address, 0xabcd...)'
                       value={item.contractAddress}
                       onValueChange={(newValue) => {
                         updateItem(currentPath, { ...item, contractAddress: newValue });
@@ -218,13 +219,6 @@ const AccessControlConditionsEditor: React.FC<AccessControlConditionsEditorProps
                         updateItem(currentPath, { ...item, method: newValue });
                       }}
                     />
-                    <Input
-                      hidden
-                      label="Contract Type"
-                      value={item.standardContractType}
-                      onValueChange={(newValue) => {
-                        updateItem(currentPath, { ...item, standardContractType: newValue as AccsDefaultParams["standardContractType"] });
-                      }} />
                     <Input
                       label="Value Compare"
                       value={item.returnValueTest.value} onValueChange={(newValue) => updateItem(currentPath, {
