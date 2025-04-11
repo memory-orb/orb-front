@@ -30,6 +30,30 @@ export const OrbButton = styled.button`
   }
 `
 
+export const OrbButtonMiddle = styled.button`
+  padding: 14px 25px;
+  background-color: rgba(255, 255, 255, 0.02);
+  border: 1.5px solid var(--accent-color);
+  color: var(--text-color);
+  font-size: 0.95rem;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 12px var(--glow-color);
+
+  &:hover {
+    background-color: var(--accent-color);
+    color: #0A0F1A;
+    box-shadow: 0 0 25px var(--glow-color);
+  }
+
+  @media (max-width: 768px) {
+    padding: 10px 15px;
+    font-size: 0.85rem;
+  }
+`
+
 export const OrbButtonSmall = styled.button`
   background-color: rgba(255, 255, 255, 0.02);
   border: 1.5px solid var(--accent-color);

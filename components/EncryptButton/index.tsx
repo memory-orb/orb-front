@@ -24,6 +24,7 @@ interface UploadButtonProps {
 const EncryptButton: React.FC<UploadButtonProps> = ({ onUploadFinished, children }) => {
   const [condition, setCondition] = useState<AccessControlConditions>([]);
   const [isUploading, setUploading] = useState(false);
+  const [advancedMode, setAdvancedMode] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [price, setPrice] = useState<string>("");
@@ -64,7 +65,7 @@ const EncryptButton: React.FC<UploadButtonProps> = ({ onUploadFinished, children
       if (arweaveTransId) {
         setStatusMessage(`Uploaded arweave id: ${arweaveTransId}, sharing...`);
         await addMemoryMapping({
-          arweaveId: arweaveTransId,
+          memoryId: arweaveTransId,
           price: price,
           description: description,
         });
@@ -115,7 +116,7 @@ const EncryptButton: React.FC<UploadButtonProps> = ({ onUploadFinished, children
                 <Input label="Description" value={description} onValueChange={setDescription} />
                 <Input label="Price" value={price} onValueChange={setPrice} />
                 <Divider />
-                <AccessControlConditionsEditor value={condition} onChange={(newCondition) => { setCondition(newCondition) }} />
+                <AccessControlConditionsEditor advancedMode={advancedMode} value={condition} onChange={(newCondition) => { setCondition(newCondition) }} />
                 <input
                   id="memory-upload"
                   type="file"
@@ -126,6 +127,7 @@ const EncryptButton: React.FC<UploadButtonProps> = ({ onUploadFinished, children
               </ModalBody>
               <ModalFooter>
                 <span>{statusMessage}</span>
+                <Button onPress={() => setAdvancedMode(oldValue => !oldValue)}>Advanced</Button>
                 <Button onPress={onClose} disabled={isUploading}>Cancel</Button>
                 <Button
                   color="primary"
