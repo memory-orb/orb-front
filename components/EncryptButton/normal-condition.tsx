@@ -5,6 +5,7 @@ import { properties } from "@lit-protocol/accs-schemas/schemas/LPACC_EVM_BASIC"
 import styled from "styled-components";
 import { Dispatch } from "react";
 import { DEFAULT_CONDITION } from "@/utils/constants";
+import { ethers } from "ethers";
 
 const Container = styled.div`
   border: 1px solid #ddd;
@@ -83,6 +84,7 @@ const ChainSelect = ({ condition, updateCondition }: {
   )
 }
 
+
 export default function NormalCondition({ condition, updateCondition }: {
   condition: Readonly<AccsDefaultParams>,
   updateCondition: Dispatch<Readonly<AccsDefaultParams>>
@@ -106,15 +108,15 @@ export default function NormalCondition({ condition, updateCondition }: {
       <ChainSelect condition={condition} updateCondition={updateCondition} />
       {condition.method === "eth_getBalance" ? (
         <>
-          <Input type="number" value={condition.returnValueTest.value} onValueChange={(newValue) => {
+          <Input value={ethers.utils.formatEther(condition.returnValueTest.value)} onValueChange={(newValue => {
             updateCondition({
               ...condition,
               returnValueTest: {
                 ...condition.returnValueTest,
-                value: newValue
+                value: `${ethers.utils.parseUnits(newValue, "ether")}`
               }
             })
-          }} label="Minimum balance" />
+          })} label="Minimum balance" />
         </>
       ) : condition.standardContractType === "ERC20" ? (
         <>
@@ -129,7 +131,7 @@ export default function NormalCondition({ condition, updateCondition }: {
                 value: newValue
               }
             })
-          }} label="Minimum ERC20 Token amount" />
+          }} label="Minimum ERC20 Token amount (Please add DECIMAL number of 0)" />
         </>
       ) : condition.standardContractType === "ERC721" ? (
         <>
