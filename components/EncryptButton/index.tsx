@@ -15,6 +15,7 @@ import { useArweave } from "@/contexts/arweaveContext";
 import { useLitProtocol } from "@/contexts/litProtocolContext";
 import { addToast, Divider, Input } from "@heroui/react";
 import { useEthers } from "@/contexts/ethersContext";
+import { DEFAULT_CONDITION } from "@/utils/constants";
 
 interface UploadButtonProps {
   onUploadFinished?: (arweaveTransId: string) => void;
@@ -22,9 +23,8 @@ interface UploadButtonProps {
 }
 
 const EncryptButton: React.FC<UploadButtonProps> = ({ onUploadFinished, children }) => {
-  const [condition, setCondition] = useState<AccessControlConditions>([]);
+  const [condition, setCondition] = useState<AccessControlConditions>([DEFAULT_CONDITION]);
   const [isUploading, setUploading] = useState(false);
-  const [advancedMode, setAdvancedMode] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [price, setPrice] = useState<string>("");
@@ -114,9 +114,9 @@ const EncryptButton: React.FC<UploadButtonProps> = ({ onUploadFinished, children
               <ModalHeader className="select-none">Encrypt & Upload Memory</ModalHeader>
               <ModalBody>
                 <Input label="Description" placeholder="(eg. My favorite movie)" value={description} onValueChange={setDescription} />
-                <Input label="Price" placeholder="(eg. >0.01 ETH)" value={price} onValueChange={setPrice} />
+                <Input label="Requirement" placeholder="(eg. Balance >0.01 ETH, or Azuki NFT > 0)" value={price} onValueChange={setPrice} />
                 <Divider />
-                <AccessControlConditionsEditor advancedMode={advancedMode} value={condition} onChange={(newCondition) => { setCondition(newCondition) }} />
+                <AccessControlConditionsEditor value={condition} onChange={(newCondition) => { setCondition(newCondition) }} />
                 <input
                   id="memory-upload"
                   type="file"
@@ -127,7 +127,7 @@ const EncryptButton: React.FC<UploadButtonProps> = ({ onUploadFinished, children
               </ModalBody>
               <ModalFooter>
                 <span>{statusMessage}</span>
-                <Button onPress={() => setAdvancedMode(oldValue => !oldValue)}>Advanced</Button>
+                {/* <Button onPress={() => setAdvancedMode(oldValue => !oldValue)}>Advanced</Button> */}
                 <Button onPress={onClose} disabled={isUploading}>Cancel</Button>
                 <Button
                   color="primary"

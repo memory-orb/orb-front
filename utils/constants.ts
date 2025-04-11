@@ -1,4 +1,18 @@
+import { AccsDefaultParams } from "@lit-protocol/types";
+
 export const errorFunction = () => { throw new Error("Function not implemented"); };
+
+export const DEFAULT_CONDITION: Readonly<AccsDefaultParams> = {
+  contractAddress: '',
+  standardContractType: '',
+  chain: 'sepolia',
+  method: 'eth_getBalance',
+  parameters: [":userAddress"],
+  returnValueTest: {
+    comparator: '>',
+    value: '0'
+  }
+};
 
 export const networks: Record<"bscTestnet" | "litTestnet", {
   chainId: string;

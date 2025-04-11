@@ -6,59 +6,25 @@ import {
 } from '@lit-protocol/types';
 import { AccessControlCondition } from '@/types';
 import { isConditionsGroup, isNormalCondition, isOperatorCondition } from '@/utils/type-checker';
-import { Input } from '@heroui/input';
 import { Button, ButtonGroup } from '@heroui/button';
-import { FlexDiv } from '@/utils/styled';
-import { Select, SelectItem } from '@heroui/select';
-import { properties } from "@lit-protocol/accs-schemas/schemas/LPACC_EVM_BASIC"
+import { DEFAULT_CONDITION } from '@/utils/constants';
+import NormalCondition from './normal-condition';
 
 const OPERATOR_OPTIONS = [
   { label: 'AND', value: 'and' },
   { label: 'OR', value: 'or' },
 ];
 
-const DEFAULT_CONDITION: Readonly<AccsDefaultParams> = {
-  contractAddress: '',
-  standardContractType: '',
-  chain: 'sepolia',
-  method: 'eth_getBalance',
-  parameters: [":userAddress"],
-  returnValueTest: {
-    comparator: '>',
-    value: '0'
-  }
-};
-
-const CONDITION_PRESETS: Readonly<{ title: string, condition: AccsDefaultParams }[]> = [
-  {
-    title: "ETH Balance",
-    condition: {
-      ...DEFAULT_CONDITION,
-    }
-  },
-  {
-    title: "ERC20 Balance(USDT)",
-    condition: {
-      ...DEFAULT_CONDITION,
-      method: 'balanceOf',
-      contractAddress: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-      chain: 'ethereum',
-    }
-  }
-]
-
 const DEFAULT_OPERATOR: AccsOperatorParams = {
   operator: 'and'
 };
 
 interface AccessControlConditionsEditorProps {
-  advancedMode: boolean;
   value: AccessControlConditions;
   onChange: (conditions: AccessControlConditions) => void;
 }
 
 const AccessControlConditionsEditor: React.FC<AccessControlConditionsEditorProps> = ({
-  advancedMode,
   value,
   onChange
 }) => {
@@ -73,7 +39,7 @@ const AccessControlConditionsEditor: React.FC<AccessControlConditionsEditorProps
     onChange(updatedConditions);
   };
 
-  const addCondition = (parentPath: number[] = []) => {
+  const addCondition = (parentPath: number[] = [], condition: AccsDefaultParams = DEFAULT_CONDITION) => {
     const newConditions = [...conditions];
     let current = newConditions;
 
@@ -81,7 +47,7 @@ const AccessControlConditionsEditor: React.FC<AccessControlConditionsEditorProps
       current = current[index] as AccessControlConditions;
     }
 
-    current.push({ ...DEFAULT_CONDITION });
+    current.push({ ...condition });
     updateConditions(newConditions);
   };
 
@@ -184,75 +150,10 @@ const AccessControlConditionsEditor: React.FC<AccessControlConditionsEditorProps
               );
             } else if (isNormalCondition(item)) {
               return (
-                <div key={index} className="condition" style={{
-                  border: '1px solid #ddd',
-                  borderRadius: '3px',
-                  padding: '10px',
-                  margin: '8px 0',
-                  backgroundColor: '#fff'
-                }}>
-                  <FlexDiv style={{ justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <h4 className='m-0'>Condition</h4>
-                    <Button onPress={() => removeItem(currentPath)} color='warning'>Remove</Button>
-                  </FlexDiv>
-
-                  <FlexDiv className='flex-col gap-2'>
-                    <Select label="Chain" defaultSelectedKeys={[item.chain]} isVirtualized onChange={(e) => {
-                      updateItem(currentPath, { ...item, chain: e.target.value as AccsDefaultParams["chain"] });
-                    }}>
-                      {properties.chain.enum.map(chain => (
-                        <SelectItem key={chain}>{chain}</SelectItem>
-                      ))}
-                    </Select>
-                    <Input
-                      label="Contract Address "
-                      placeholder='(eg.Your ERC20 address, 0xabcd...)'
-                      value={item.contractAddress}
-                      onValueChange={(newValue) => {
-                        updateItem(currentPath, { ...item, contractAddress: newValue });
-                      }}
-                    />
-                    <Input
-                      label="Methods"
-                      value={item.method}
-                      onValueChange={(newValue) => {
-                        updateItem(currentPath, { ...item, method: newValue });
-                      }}
-                    />
-                    <Input
-                      label="Value Compare"
-                      value={item.returnValueTest.value} onValueChange={(newValue) => updateItem(currentPath, {
-                        ...item,
-                        returnValueTest: {
-                          ...item.returnValueTest,
-                          value: newValue
-                        }
-                      })}
-                      startContent={
-                        <div className='flex items-center'>
-                          <select
-                            className='outline-none border-0 bg-transparent text-small'
-                            value={item.returnValueTest.comparator}
-                            onChange={(e) => {
-                              updateItem(currentPath, {
-                                ...item,
-                                returnValueTest: {
-                                  ...item.returnValueTest,
-                                  comparator: e.target.value as AccsDefaultParams["returnValueTest"]["comparator"]
-                                }
-                              });
-                            }}
-                          >
-                            <option value="=">=</option>
-                            <option value=">">&gt;</option>
-                            <option value="<">&lt;</option>
-                            <option value=">=">&gt;=</option>
-                            <option value="<=">&lt;=</option>
-                          </select>
-                        </div>
-                      } />
-                  </FlexDiv>
-                </div>
+                <NormalCondition
+                  key={index}
+                  condition={item}
+                  updateCondition={(newCondition) => updateItem(currentPath, newCondition)} />
               );
             } else if (isConditionsGroup(item)) {
               return (
@@ -269,7 +170,7 @@ const AccessControlConditionsEditor: React.FC<AccessControlConditionsEditorProps
           })
         )}
 
-        <div className="condition-buttons" style={{
+        {/* <div className="condition-buttons" style={{
           display: 'flex',
           gap: '10px',
           marginTop: '10px'
@@ -279,7 +180,7 @@ const AccessControlConditionsEditor: React.FC<AccessControlConditionsEditorProps
             <Button onPress={() => addOperator(path)}>Add operator</Button>
             <Button onPress={() => addGroup(path)}>Add condition group</Button>
           </ButtonGroup>
-        </div>
+        </div> */}
       </div >
     );
   };
