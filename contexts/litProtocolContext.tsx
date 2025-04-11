@@ -72,7 +72,7 @@ export function LitProtocolProvider({ children }: { children: React.ReactNode })
   const { requireProvider, requireNetwork } = useEthers();
   const [state, dispatch] = useReducer(litProtocolStateReducer, initialState);
   // const initialized = useRef(false);
-  const [usedBlockchain] = useState<LPACC_EVM_BASIC["chain"]>("bscTestnet");
+  const [usedBlockchain] = useState<LPACC_EVM_BASIC["chain"]>("sepolia");
 
   // useEffect(() => {
   //   if (initialized.current) return;
